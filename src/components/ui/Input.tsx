@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { forwardRef } from 'react';
+import { forwardRef, useState } from 'react';
 import {
   StyleProp,
   StyleSheet,
@@ -7,6 +7,7 @@ import {
   TextInput,
   TextInputProps,
   TextStyle,
+  TouchableOpacity,
   View,
   ViewStyle,
 } from 'react-native';
@@ -23,9 +24,11 @@ type InputProps = TextInputProps & {
 };
 
 export const Input = forwardRef<TextInput, InputProps>(function Input(
-  { containerStyle, error, helperText, iconLeft, inputStyle, label, ...textInputProps },
+  { containerStyle, error, helperText, iconLeft, inputStyle, label, secureTextEntry, ...textInputProps },
   ref,
 ) {
+  const [showPassword, setShowPassword] = useState(false);
+
   return (
     <View style={[styles.container, containerStyle]}>
       {label ? <Text style={styles.label}>{label}</Text> : null}
@@ -36,8 +39,18 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
           placeholderTextColor={colors.textSoft}
           selectionColor={colors.primary}
           style={[styles.input, inputStyle]}
+          secureTextEntry={secureTextEntry && !showPassword}
           {...textInputProps}
         />
+        {secureTextEntry ? (
+          <TouchableOpacity onPress={() => setShowPassword(v => !v)}>
+            <Ionicons
+              name={showPassword ? 'eye-outline' : 'eye-off-outline'}
+              size={18}
+              color={colors.textMuted}
+            />
+          </TouchableOpacity>
+        ) : null}
       </View>
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {!error && helperText ? <Text style={styles.helper}>{helperText}</Text> : null}

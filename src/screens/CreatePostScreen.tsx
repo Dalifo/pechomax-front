@@ -9,6 +9,7 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Input } from '../components/ui/Input';
+import { Select } from '../components/ui/Select';
 import { useCreatePost } from '../hooks/usePosts';
 import { RootStackParamList } from '../navigation/types';
 import { getFishSpecies } from '../services/fishService';
@@ -182,21 +183,14 @@ export function CreatePostScreen({ navigation }: Props) {
 
         {!loadingOptions ? (
           <Card style={styles.formCard}>
-            <Text style={styles.label}>Espece</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View style={styles.choiceRow}>
-                {species.map((item) => (
-                  <Pressable
-                    accessibilityRole="button"
-                    key={item.id}
-                    onPress={() => setSelectedSpeciesId(item.id)}
-                    style={[styles.choiceChip, item.id === selectedSpeciesId && styles.choiceChipActive]}
-                  >
-                    <Text style={[styles.choiceText, item.id === selectedSpeciesId && styles.choiceTextActive]}>{item.name}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            </ScrollView>
+            <Select
+              iconLeft="fish-outline"
+              label="Espèce"
+              onChange={setSelectedSpeciesId}
+              options={species.map((item) => ({ label: item.name, value: item.id }))}
+              placeholder="Choisir une espèce…"
+              value={selectedSpeciesId}
+            />
 
             <Text style={styles.label}>Spot</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>

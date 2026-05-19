@@ -48,7 +48,6 @@ export function LoginScreen({ navigation }: Props) {
         </View>
         <BrandLogo color={colors.text} height={36} width={172} />
         <Text style={styles.title}>Bon retour au bord de l’eau.</Text>
-        <Text style={styles.subtitle}>Connectez-vous avec un compte de démonstration local.</Text>
       </View>
 
       <Card elevated padding="xl" style={styles.card}>
