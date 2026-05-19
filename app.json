@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "Pechomax",
+    "slug": "pechomax",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#35B4A3"
+      }
+    },
+    "plugins": [
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "PechoMax utilise vos photos pour ajouter une image a vos prises."
+        }
+      ]
+    ]
+  }
+}
