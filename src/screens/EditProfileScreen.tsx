@@ -46,7 +46,7 @@ export function EditProfileScreen({ navigation }: Props) {
   };
 
   const showUnavailable = () => {
-    Alert.alert('Fonction bientot disponible', 'Cette action sera ajoutee apres la demo.');
+    Alert.alert('Fonction bientot disponible', 'Cette action sera ajoutee prochainement.');
   };
 
   if (loading && !profile) {

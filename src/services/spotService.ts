@@ -3,6 +3,14 @@ import { mapFishingSpot } from './apiMappers';
 import { BackendLocation } from './backendTypes';
 import { httpClient } from './httpClient';
 
+export type CreateSpotInput = {
+  description: string;
+  latitude: number;
+  longitude: number;
+  name: string;
+  speciesIds?: EntityId[];
+};
+
 export async function getSpots(): Promise<FishingSpot[]> {
   const locations = await httpClient.get<BackendLocation[]>('/locations/all');
   return locations.map(mapFishingSpot);
@@ -26,3 +34,14 @@ export async function getSpotById(spotId: EntityId): Promise<FishingSpot | null>
   }
 }
 
+export async function createSpot(input: CreateSpotInput): Promise<FishingSpot> {
+  const location = await httpClient.post<BackendLocation>('/locations/create', {
+    description: input.description.trim(),
+    latitude: input.latitude.toFixed(6),
+    longitude: input.longitude.toFixed(6),
+    name: input.name.trim(),
+    speciesIds: input.speciesIds ?? [],
+  });
+
+  return mapFishingSpot(location);
+}

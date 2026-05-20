@@ -61,7 +61,7 @@ export function ProfileScreen() {
   const navigation = useNavigation<RootNavigation>();
   const [selectedBadgeId, setSelectedBadgeId] = useState<number | null>(null);
   const { logout } = useAuth();
-  const { data: profile, loading } = useProfile();
+  const { data: profile, error, loading, refresh } = useProfile();
 
   const confirmLogout = () => {
     Alert.alert('Deconnexion', 'Voulez-vous vous deconnecter ?', [
@@ -77,11 +77,29 @@ export function ProfileScreen() {
     ]);
   };
 
-  if (loading || !profile) {
+  if (loading) {
     return (
       <Screen padded={false}>
         <AppHeader title="Profil" />
         <EmptyState description="Chargement du profil." icon="person-outline" title="Chargement" />
+      </Screen>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <Screen padded={false}>
+        <AppHeader title="Profil" />
+        <View style={styles.content}>
+          <EmptyState
+            actionLabel="Reessayer"
+            description={error ?? 'Connectez-vous pour afficher votre profil.'}
+            icon="person-circle-outline"
+            onActionPress={refresh}
+            title="Profil indisponible"
+          />
+          <Button onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Login' }] })} title="Se connecter" variant="outline" />
+        </View>
       </Screen>
     );
   }

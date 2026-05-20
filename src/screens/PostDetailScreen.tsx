@@ -1,15 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { AppHeader } from '../components/layout/AppHeader';
 import { Screen } from '../components/layout/Screen';
 import { Avatar } from '../components/ui/Avatar';
-import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
 import { IconButton } from '../components/ui/IconButton';
-import { Input } from '../components/ui/Input';
 import { RemoteImage } from '../components/ui/RemoteImage';
 import { usePostDetail } from '../hooks/usePostDetail';
 import { RootStackParamList } from '../navigation/types';
@@ -19,10 +16,20 @@ type Props = NativeStackScreenProps<RootStackParamList, 'PostDetail'>;
 
 export function PostDetailScreen({ navigation, route }: Props) {
   const { data: post, loading } = usePostDetail(route.params.postId);
-  const [comment, setComment] = useState('');
 
   const showUnavailable = () => {
-    Alert.alert('Fonction bientot disponible', 'Cette action sera ajoutee apres la demo.');
+    Alert.alert('Fonction bientot disponible', 'Cette action sera ajoutee prochainement.');
+  };
+
+  const sharePost = async () => {
+    if (!post) {
+      return;
+    }
+
+    await Share.share({
+      message: `${post.author.name} a partage une prise PechoMax: ${post.fishName} (${post.weightLabel ?? 'poids non renseigne'}).`,
+      title: 'Prise PechoMax',
+    });
   };
 
   if (loading || !post) {
@@ -50,22 +57,16 @@ export function PostDetailScreen({ navigation, route }: Props) {
 
           <View style={styles.actionBar}>
             <View style={styles.actionGroup}>
-              <Pressable accessibilityRole="button" onPress={showUnavailable} style={styles.inlineAction}>
-                <Ionicons name="heart-outline" size={24} color={colors.text} />
-                <Text style={styles.actionText}>{post.likes}</Text>
-              </Pressable>
               <View style={styles.inlineAction}>
-                <Ionicons name="chatbubble-outline" size={23} color={colors.text} />
+                <Ionicons name="heart-outline" size={24} color={colors.textMuted} />
+                <Text style={styles.actionText}>{post.likes}</Text>
+              </View>
+              <View style={styles.inlineAction}>
+                <Ionicons name="chatbubble-outline" size={23} color={colors.textMuted} />
                 <Text style={styles.actionText}>{post.comments}</Text>
               </View>
-              <IconButton accessibilityLabel="Partager" icon="share-outline" onPress={showUnavailable} size="sm" variant="plain" />
+              <IconButton accessibilityLabel="Partager" icon="share-outline" onPress={sharePost} size="sm" variant="plain" />
             </View>
-            <IconButton
-              accessibilityLabel="Enregistrer"
-              icon="bookmark-outline"
-              onPress={showUnavailable}
-              variant="soft"
-            />
           </View>
 
           <View style={styles.content}>
@@ -104,7 +105,7 @@ export function PostDetailScreen({ navigation, route }: Props) {
             <Text style={styles.description}>{post.description}</Text>
 
             <Text style={styles.sectionHeading}>Commentaires ({post.comments})</Text>
-            {post.commentsList.map((item) => (
+            {post.commentsList.length > 0 ? post.commentsList.map((item) => (
               <CommentRow
                 initials={item.author.initials}
                 key={item.id}
@@ -112,20 +113,11 @@ export function PostDetailScreen({ navigation, route }: Props) {
                 text={item.text}
                 timeLabel={item.timeLabel}
               />
-            ))}
+            )) : (
+              <Text style={styles.muted}>Les commentaires seront ajoutes bientot.</Text>
+            )}
           </View>
         </ScrollView>
-
-        <View style={styles.commentBar}>
-          <Input
-            accessibilityLabel="Ajouter un commentaire"
-            containerStyle={styles.commentInput}
-            onChangeText={setComment}
-            placeholder="Ajouter un commentaire..."
-            value={comment}
-          />
-          <Button disabled={!comment.trim()} onPress={showUnavailable} title="Envoyer" />
-        </View>
       </KeyboardAvoidingView>
     </Screen>
   );
@@ -267,17 +259,5 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontFamily: typography.fontFamily,
     fontSize: 11,
-  },
-  commentBar: {
-    alignItems: 'flex-end',
-    backgroundColor: colors.surface,
-    borderTopColor: opacity.black08,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    gap: spacing.md,
-    padding: spacing.md,
-  },
-  commentInput: {
-    flex: 1,
   },
 });

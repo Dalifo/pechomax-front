@@ -29,7 +29,7 @@ export function ContactScreen({ navigation }: Props) {
       return;
     }
 
-    Alert.alert('Fonction bientot disponible', 'Le formulaire de contact sera ajoute apres la demo.');
+    Alert.alert('Fonction bientot disponible', 'Le formulaire de contact sera ajoute prochainement.');
   };
 
   return (

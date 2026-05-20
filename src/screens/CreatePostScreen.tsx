@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useMemo, useState } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AppHeader } from '../components/layout/AppHeader';
 import { Screen } from '../components/layout/Screen';
 import { Button } from '../components/ui/Button';
@@ -13,7 +13,7 @@ import { Select } from '../components/ui/Select';
 import { useCreatePost } from '../hooks/usePosts';
 import { RootStackParamList } from '../navigation/types';
 import { getFishSpecies } from '../services/fishService';
-import { getSpots } from '../services/spotService';
+import { createSpot, getSpots } from '../services/spotService';
 import { colors, opacity, radius, spacing, typography } from '../theme/theme';
 import { EntityId, FishSpecies, FishingSpot } from '../types/domain';
 
@@ -25,37 +25,101 @@ type SelectedPhoto = {
   uri: string;
 };
 
+type SpotDraft = {
+  description: string;
+  latitude: string;
+  longitude: string;
+  name: string;
+};
+
+const defaultSpotDraft: SpotDraft = {
+  description: '',
+  latitude: '46.603354',
+  longitude: '1.888334',
+  name: '',
+};
+
+function formatDateLabel(date: Date) {
+  return new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }).format(date);
+}
+
+function shiftDate(date: Date, days: number) {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+function integerFromInput(value: string) {
+  const parsed = Number.parseInt(value.replace(/[^\d]/g, ''), 10);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function coordinateFromInput(value: string) {
+  const parsed = Number.parseFloat(value.replace(',', '.'));
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function validCoordinate(latitude: number | null, longitude: number | null) {
+  return (
+    latitude !== null &&
+    longitude !== null &&
+    latitude >= -90 &&
+    latitude <= 90 &&
+    longitude >= -180 &&
+    longitude <= 180
+  );
+}
+
 export function CreatePostScreen({ navigation }: Props) {
   const [species, setSpecies] = useState<FishSpecies[]>([]);
   const [spots, setSpots] = useState<FishingSpot[]>([]);
   const [selectedSpeciesId, setSelectedSpeciesId] = useState<EntityId | null>(null);
   const [selectedSpotId, setSelectedSpotId] = useState<EntityId | null>(null);
-  const [weightLabel, setWeightLabel] = useState('');
-  const [lengthLabel, setLengthLabel] = useState('');
-  const [dateLabel, setDateLabel] = useState("Aujourd'hui");
+  const [weightGrams, setWeightGrams] = useState('');
+  const [lengthCentimeters, setLengthCentimeters] = useState('');
+  const [catchDate, setCatchDate] = useState(() => new Date());
   const [description, setDescription] = useState('');
   const [photo, setPhoto] = useState<SelectedPhoto | null>(null);
   const [loadingOptions, setLoadingOptions] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [spotModalVisible, setSpotModalVisible] = useState(false);
+  const [spotDraft, setSpotDraft] = useState<SpotDraft>(defaultSpotDraft);
+  const [creatingSpot, setCreatingSpot] = useState(false);
   const { submitPost, submitting } = useCreatePost();
+
+  const loadOptions = async () => {
+    setLoadingOptions(true);
+    setError(null);
+
+    try {
+      const [nextSpecies, nextSpots] = await Promise.all([getFishSpecies(), getSpots()]);
+      setSpecies(nextSpecies);
+      setSpots(nextSpots);
+      setSelectedSpeciesId((current) => current ?? nextSpecies[0]?.id ?? null);
+      setSelectedSpotId((current) => current ?? nextSpots[0]?.id ?? null);
+    } catch {
+      setError('Impossible de charger les especes et les spots.');
+    } finally {
+      setLoadingOptions(false);
+    }
+  };
 
   useEffect(() => {
     let active = true;
 
-    async function loadOptions() {
+    async function load() {
       try {
         const [nextSpecies, nextSpots] = await Promise.all([getFishSpecies(), getSpots()]);
         if (!active) {
           return;
         }
-
         setSpecies(nextSpecies);
         setSpots(nextSpots);
         setSelectedSpeciesId(nextSpecies[0]?.id ?? null);
         setSelectedSpotId(nextSpots[0]?.id ?? null);
       } catch {
         if (active) {
-          setError('Impossible de charger les options de publication.');
+          setError('Impossible de charger les especes et les spots.');
         }
       } finally {
         if (active) {
@@ -64,7 +128,7 @@ export function CreatePostScreen({ navigation }: Props) {
       }
     }
 
-    loadOptions();
+    load();
 
     return () => {
       active = false;
@@ -79,12 +143,16 @@ export function CreatePostScreen({ navigation }: Props) {
     () => spots.find((item) => item.id === selectedSpotId) ?? null,
     [selectedSpotId, spots],
   );
+  const weightValue = integerFromInput(weightGrams);
+  const lengthValue = integerFromInput(lengthCentimeters);
   const valid =
     Boolean(photo) &&
     Boolean(selectedSpecies) &&
     Boolean(selectedSpot) &&
-    weightLabel.trim().length > 0 &&
-    lengthLabel.trim().length > 0 &&
+    weightValue !== null &&
+    weightValue > 0 &&
+    lengthValue !== null &&
+    lengthValue > 0 &&
     description.trim().length > 0;
 
   const pickPhoto = async () => {
@@ -116,8 +184,8 @@ export function CreatePostScreen({ navigation }: Props) {
   };
 
   const submit = async () => {
-    if (!valid || !selectedSpecies || !selectedSpot || !photo) {
-      setError('Completez les champs obligatoires avant de publier.');
+    if (!valid || !selectedSpecies || !selectedSpot || !photo || weightValue === null || lengthValue === null) {
+      setError('Completez les champs obligatoires avec des valeurs valides.');
       return;
     }
 
@@ -125,21 +193,52 @@ export function CreatePostScreen({ navigation }: Props) {
 
     try {
       const createdPost = await submitPost({
-        dateLabel,
+        date: catchDate,
         description: description.trim(),
-        fishName: selectedSpecies.name,
-        lengthLabel,
+        lengthCentimeters: lengthValue,
         locationId: selectedSpot.id,
         photoName: photo.fileName,
         photoType: photo.mimeType,
         photoUri: photo.uri,
         speciesId: selectedSpecies.id,
-        spotName: selectedSpot.name,
-        weightLabel,
+        weightGrams: weightValue,
       });
       navigation.replace('PostDetail', { postId: createdPost.id });
     } catch {
-      setError('Impossible de publier cette prise. Veuillez verifier les informations et reessayer.');
+      setError('Impossible de publier cette prise. Verifiez la photo, la connexion et reessayez.');
+    }
+  };
+
+  const submitSpot = async () => {
+    const latitude = coordinateFromInput(spotDraft.latitude);
+    const longitude = coordinateFromInput(spotDraft.longitude);
+
+    if (!spotDraft.name.trim() || !spotDraft.description.trim() || !validCoordinate(latitude, longitude)) {
+      setError('Renseignez un nom, une description et des coordonnees valides pour le spot.');
+      return;
+    }
+
+    const validLatitude = latitude ?? 0;
+    const validLongitude = longitude ?? 0;
+    setCreatingSpot(true);
+    setError(null);
+
+    try {
+      const spot = await createSpot({
+        description: spotDraft.description,
+        latitude: validLatitude,
+        longitude: validLongitude,
+        name: spotDraft.name,
+        speciesIds: selectedSpeciesId ? [selectedSpeciesId] : [],
+      });
+      setSpots((current) => [spot, ...current.filter((item) => item.id !== spot.id)]);
+      setSelectedSpotId(spot.id);
+      setSpotDraft(defaultSpotDraft);
+      setSpotModalVisible(false);
+    } catch {
+      setError('Impossible de creer ce spot. Verifiez les coordonnees et reessayez.');
+    } finally {
+      setCreatingSpot(false);
     }
   };
 
@@ -165,7 +264,7 @@ export function CreatePostScreen({ navigation }: Props) {
             <>
               <Ionicons name="camera-outline" size={48} color={colors.textMuted} />
               <Text style={styles.photoTitle}>Ajouter une photo</Text>
-              <Text style={styles.photoHint}>Choisissez une image de votre galerie</Text>
+              <Text style={styles.photoHint}>Une photo est obligatoire pour publier</Text>
             </>
           )}
         </Pressable>
@@ -183,42 +282,77 @@ export function CreatePostScreen({ navigation }: Props) {
 
         {!loadingOptions && (species.length === 0 || spots.length === 0) ? (
           <EmptyState
+            actionLabel="Reessayer"
             description="Les especes et les spots doivent etre disponibles avant de publier."
             icon="alert-circle-outline"
+            onActionPress={loadOptions}
             title="Publication indisponible"
           />
         ) : null}
 
-        {!loadingOptions && species.length > 0 && spots.length > 0 ? (
+        {!loadingOptions && species.length > 0 ? (
           <Card style={styles.formCard}>
             <Select
               iconLeft="fish-outline"
-              label="Espèce"
+              label="Espece"
               onChange={setSelectedSpeciesId}
               options={species.map((item) => ({ label: item.name, value: item.id }))}
-              placeholder="Choisir une espèce…"
+              placeholder="Choisir une espece"
               value={selectedSpeciesId}
             />
 
-            <Text style={styles.label}>Spot</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View style={styles.choiceRow}>
-                {spots.map((item) => (
-                  <Pressable
-                    accessibilityRole="button"
-                    key={item.id}
-                    onPress={() => setSelectedSpotId(item.id)}
-                    style={[styles.choiceChip, item.id === selectedSpotId && styles.choiceChipActive]}
-                  >
-                    <Text style={[styles.choiceText, item.id === selectedSpotId && styles.choiceTextActive]}>{item.name}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            </ScrollView>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.label}>Spot</Text>
+              <Button iconLeft="add" onPress={() => setSpotModalVisible(true)} size="sm" title="Creer un spot" variant="outline" />
+            </View>
+            {spots.length > 0 ? (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={styles.choiceRow}>
+                  {spots.map((item) => (
+                    <Pressable
+                      accessibilityRole="button"
+                      key={item.id}
+                      onPress={() => setSelectedSpotId(item.id)}
+                      style={[styles.choiceChip, item.id === selectedSpotId && styles.choiceChipActive]}
+                    >
+                      <Text style={[styles.choiceText, item.id === selectedSpotId && styles.choiceTextActive]}>{item.name}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </ScrollView>
+            ) : (
+              <Text style={styles.helperText}>Creez un spot pour pouvoir publier votre prise.</Text>
+            )}
 
-            <Input iconLeft="scale-outline" label="Poids" onChangeText={setWeightLabel} placeholder="Ex: 4.2 kg" value={weightLabel} />
-            <Input iconLeft="resize-outline" label="Longueur" onChangeText={setLengthLabel} placeholder="Ex: 82 cm" value={lengthLabel} />
-            <Input iconLeft="calendar-outline" label="Date" onChangeText={setDateLabel} value={dateLabel} />
+            <Input
+              iconLeft="scale-outline"
+              keyboardType="number-pad"
+              label="Poids (g)"
+              onChangeText={setWeightGrams}
+              placeholder="Ex: 4200"
+              value={weightGrams}
+            />
+            <Input
+              iconLeft="resize-outline"
+              keyboardType="number-pad"
+              label="Longueur (cm)"
+              onChangeText={setLengthCentimeters}
+              placeholder="Ex: 82"
+              value={lengthCentimeters}
+            />
+
+            <View style={styles.dateBlock}>
+              <Text style={styles.label}>Date</Text>
+              <View style={styles.dateRow}>
+                <Button onPress={() => setCatchDate((current) => shiftDate(current, -1))} size="sm" title="-1 jour" variant="outline" />
+                <View style={styles.dateValue}>
+                  <Text style={styles.dateText}>{formatDateLabel(catchDate)}</Text>
+                </View>
+                <Button onPress={() => setCatchDate((current) => shiftDate(current, 1))} size="sm" title="+1 jour" variant="outline" />
+              </View>
+              <Button onPress={() => setCatchDate(new Date())} size="sm" title="Aujourd'hui" variant="ghost" />
+            </View>
+
             <Input
               inputStyle={styles.textArea}
               label="Description"
@@ -242,6 +376,46 @@ export function CreatePostScreen({ navigation }: Props) {
         />
         <Button accessibilityLabel="Annuler" onPress={navigation.goBack} title="Annuler" variant="ghost" />
       </View>
+
+      <Modal animationType="slide" onRequestClose={() => setSpotModalVisible(false)} transparent visible={spotModalVisible}>
+        <View style={styles.modalBackdrop}>
+          <Card elevated style={styles.modalCard}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.modalTitle}>Creer un spot</Text>
+              <Pressable accessibilityRole="button" onPress={() => setSpotModalVisible(false)} style={styles.closeButton}>
+                <Ionicons name="close" size={22} color={colors.text} />
+              </Pressable>
+            </View>
+            <Input label="Nom du spot" onChangeText={(name) => setSpotDraft((current) => ({ ...current, name }))} value={spotDraft.name} />
+            <Input
+              inputStyle={styles.textAreaSmall}
+              label="Description"
+              multiline
+              onChangeText={(description) => setSpotDraft((current) => ({ ...current, description }))}
+              textAlignVertical="top"
+              value={spotDraft.description}
+            />
+            <View style={styles.coordinateRow}>
+              <Input
+                containerStyle={styles.coordinateInput}
+                keyboardType="decimal-pad"
+                label="Latitude"
+                onChangeText={(latitude) => setSpotDraft((current) => ({ ...current, latitude }))}
+                value={spotDraft.latitude}
+              />
+              <Input
+                containerStyle={styles.coordinateInput}
+                keyboardType="decimal-pad"
+                label="Longitude"
+                onChangeText={(longitude) => setSpotDraft((current) => ({ ...current, longitude }))}
+                value={spotDraft.longitude}
+              />
+            </View>
+            <Text style={styles.helperText}>Astuce: ajustez les coordonnees depuis la carte, puis publiez votre prise ici.</Text>
+            <Button loading={creatingSpot} onPress={submitSpot} title="Creer ce spot" />
+          </Card>
+        </View>
+      </Modal>
     </Screen>
   );
 }
@@ -288,6 +462,12 @@ const styles = StyleSheet.create({
   formCard: {
     gap: spacing.lg,
   },
+  sectionHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.md,
+    justifyContent: 'space-between',
+  },
   label: {
     color: colors.text,
     fontFamily: typography.fontFamilyBold,
@@ -316,17 +496,77 @@ const styles = StyleSheet.create({
   choiceTextActive: {
     color: colors.background,
   },
+  dateBlock: {
+    gap: spacing.sm,
+  },
+  dateRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  dateValue: {
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    flex: 1,
+    minHeight: 40,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+  },
+  dateText: {
+    color: colors.text,
+    fontFamily: typography.fontFamilyBold,
+    fontSize: 13,
+    fontWeight: typography.weights.bold,
+    textAlign: 'center',
+  },
   errorText: {
     color: colors.danger,
     fontFamily: typography.fontFamily,
     fontSize: 13,
     lineHeight: 19,
   },
+  helperText: {
+    color: colors.textMuted,
+    fontFamily: typography.fontFamily,
+    fontSize: 12,
+    lineHeight: 17,
+  },
   textArea: {
     minHeight: 104,
+  },
+  textAreaSmall: {
+    minHeight: 82,
   },
   pressed: {
     opacity: 0.72,
   },
+  modalBackdrop: {
+    backgroundColor: opacity.black40,
+    flex: 1,
+    justifyContent: 'flex-end',
+    padding: spacing.lg,
+  },
+  modalCard: {
+    gap: spacing.lg,
+    maxHeight: '88%',
+  },
+  modalTitle: {
+    color: colors.text,
+    fontFamily: typography.fontFamilyBold,
+    fontSize: 18,
+    fontWeight: typography.weights.bold,
+  },
+  closeButton: {
+    padding: spacing.xs,
+  },
+  coordinateRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  coordinateInput: {
+    flex: 1,
+  },
 });
-

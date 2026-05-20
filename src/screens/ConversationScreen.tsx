@@ -20,7 +20,7 @@ export function ConversationScreen({ navigation, route }: Props) {
   const [draft, setDraft] = useState('');
 
   const showUnavailable = () => {
-    Alert.alert('Fonction bientot disponible', 'Cette action sera ajoutee apres la demo.');
+    Alert.alert('Fonction bientot disponible', 'Cette action sera ajoutee prochainement.');
   };
 
   const submit = async () => {

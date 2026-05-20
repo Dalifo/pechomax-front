@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { AppHeader } from '../components/layout/AppHeader';
 import { Screen } from '../components/layout/Screen';
 import { Avatar } from '../components/ui/Avatar';
@@ -22,16 +22,12 @@ type FeedFilter = 'Tous' | 'Amis' | 'Tendances' | 'Mes spots';
 const filters: FeedFilter[] = ['Tous', 'Amis', 'Tendances', 'Mes spots'];
 
 function PostCard({
-  onBookmark,
-  onLike,
   onOpen,
   onOpenSpot,
   onOpenUser,
   onShare,
   post,
 }: {
-  onBookmark: () => void;
-  onLike: () => void;
   onOpen: () => void;
   onOpenSpot: () => void;
   onOpenUser: () => void;
@@ -70,10 +66,10 @@ function PostCard({
       ) : null}
 
       <View style={styles.actionBar}>
-        <Pressable accessibilityLabel="Aimer la publication" accessibilityRole="button" onPress={onLike} style={styles.actionButton}>
-          <Ionicons name={post.liked ? 'heart' : 'heart-outline'} size={20} color={post.liked ? colors.earth : colors.textMuted} />
-          <Text style={[styles.actionText, post.liked && styles.actionTextActive]}>{post.likes}</Text>
-        </Pressable>
+        <View style={styles.actionButton}>
+          <Ionicons name="heart-outline" size={20} color={colors.textMuted} />
+          <Text style={styles.actionText}>{post.likes}</Text>
+        </View>
         <View style={styles.actionButton}>
           <Ionicons name="chatbubble-outline" size={19} color={colors.textMuted} />
           <Text style={styles.actionText}>{post.comments}</Text>
@@ -81,9 +77,6 @@ function PostCard({
         <View style={styles.actionSpacer} />
         <Pressable accessibilityLabel="Partager la publication" accessibilityRole="button" onPress={onShare} style={styles.iconAction}>
           <Ionicons name="share-outline" size={19} color={colors.textMuted} />
-        </Pressable>
-        <Pressable accessibilityLabel="Enregistrer la publication" accessibilityRole="button" onPress={onBookmark} style={styles.iconAction}>
-          <Ionicons name={post.bookmarked ? 'bookmark' : 'bookmark-outline'} size={19} color={post.bookmarked ? colors.primary : colors.textMuted} />
         </Pressable>
       </View>
     </Card>
@@ -95,8 +88,11 @@ export function CommunityScreen() {
   const [activeFilter, setActiveFilter] = useState<FeedFilter>('Tous');
   const { data: posts, loading } = usePosts();
 
-  const showUnavailable = () => {
-    Alert.alert('Fonction bientot disponible', 'Cette action sera ajoutee apres la demo.');
+  const sharePost = async (post: CatchPost) => {
+    await Share.share({
+      message: `${post.author.name} a partage une prise PechoMax: ${post.fishName} (${post.weightLabel ?? 'poids non renseigne'}).`,
+      title: 'Prise PechoMax',
+    });
   };
 
   const visiblePosts = posts.filter((post) => {
@@ -155,12 +151,10 @@ export function CommunityScreen() {
         {!loading && visiblePosts.map((post) => (
           <PostCard
             key={post.id}
-            onBookmark={showUnavailable}
-            onLike={showUnavailable}
             onOpen={() => navigation.navigate('PostDetail', { postId: post.id })}
             onOpenSpot={() => post.spotId && navigation.navigate('SpotDetail', { spotId: post.spotId })}
             onOpenUser={() => navigation.navigate('UserProfile', { userId: post.author.id })}
-            onShare={showUnavailable}
+            onShare={() => sharePost(post)}
             post={post}
           />
         ))}
@@ -263,9 +257,6 @@ const styles = StyleSheet.create({
     fontFamily: typography.fontFamilyBold,
     fontSize: 13,
     fontWeight: typography.weights.bold,
-  },
-  actionTextActive: {
-    color: colors.earth,
   },
   pressed: {
     opacity: 0.72,

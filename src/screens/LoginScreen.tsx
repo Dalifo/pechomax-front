@@ -79,11 +79,11 @@ export function LoginScreen({ navigation }: Props) {
           title="Se connecter"
         />
         <Button
-          accessibilityLabel="Connexion demo"
+          accessibilityLabel="Connexion rapide"
           fullWidth
           loading={loading}
           onPress={() => submit({ email: 'marc@pechomax.dev', password: 'PechoMax123!' })}
-          title="Connexion demo"
+          title="Connexion rapide"
           variant="secondary"
         />
       </Card>

@@ -136,7 +136,8 @@ export function mapAuthUserFromUser(user: BackendUser): AuthUser {
 }
 
 export function mapCatchPost(item: BackendCatch): CatchPost {
-  const imageUrl = item.pictures.find((picture) => /^https?:\/\//i.test(picture));
+  const pictures = Array.isArray(item.pictures) ? item.pictures : [];
+  const imageUrl = pictures.find((picture) => /^https?:\/\//i.test(picture));
 
   return {
     author: mapUserSummary(item.user, item.user_id ?? ''),
@@ -153,7 +154,7 @@ export function mapCatchPost(item: BackendCatch): CatchPost {
     likes: Math.max(0, Math.round((item.point_value ?? 0) / 100)),
     spotId: item.location?.id ?? item.location_id,
     spotName: item.location?.name,
-    weightLabel: `${item.weight} kg`,
+    weightLabel: `${item.weight} g`,
   };
 }
 
@@ -260,10 +261,12 @@ export function mapMessage(item: BackendMessage, currentUserId?: string | null):
 }
 
 export function mapLogbookCatch(item: BackendCatch): LogbookCatch {
+  const pictures = Array.isArray(item.pictures) ? item.pictures : [];
+
   return {
     date: item.date,
     id: item.id,
-    imageUrl: item.pictures.find((picture) => /^https?:\/\//i.test(picture)),
+    imageUrl: pictures.find((picture) => /^https?:\/\//i.test(picture)),
     length: item.length,
     location: item.location?.name ?? 'Spot PechoMax',
     species: item.species?.name ?? 'Poisson',

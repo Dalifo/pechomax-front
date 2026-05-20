@@ -4,37 +4,19 @@ import { BackendCatch } from './backendTypes';
 import { httpClient } from './httpClient';
 
 export type CreatePostInput = {
-  fishName: string;
+  date: Date;
   speciesId: EntityId;
-  weightLabel: string;
-  lengthLabel?: string;
-  spotName: string;
+  weightGrams: number;
+  lengthCentimeters: number;
   locationId: EntityId;
-  dateLabel: string;
   description?: string;
   photoUri?: string;
   photoName?: string;
   photoType?: string;
 };
 
-function parseMeasurement(value: string, fallback?: number) {
-  const normalized = value.replace(',', '.').replace(/[^\d.]/g, '');
-  const parsed = Number.parseFloat(normalized);
-  return Number.isFinite(parsed) ? parsed : fallback;
-}
-
 function integerMeasurement(value: number) {
   return Math.max(1, Math.round(value));
-}
-
-function dateFromLabel(label: string) {
-  const lower = label.trim().toLowerCase();
-  if (!label || lower === "aujourd'hui" || lower === 'aujourd hui') {
-    return new Date();
-  }
-
-  const date = new Date(label);
-  return Number.isNaN(date.getTime()) ? new Date() : date;
 }
 
 export async function getPosts(): Promise<CatchPost[]> {
@@ -65,18 +47,15 @@ export async function createPost(input: CreatePostInput): Promise<CatchPost> {
     throw new Error('Ajoutez une photo pour publier votre prise.');
   }
 
-  const parsedWeight = parseMeasurement(input.weightLabel);
-  const parsedLength = parseMeasurement(input.lengthLabel ?? '');
-
-  if (parsedWeight === undefined || parsedLength === undefined) {
+  if (!Number.isFinite(input.weightGrams) || !Number.isFinite(input.lengthCentimeters)) {
     throw new Error('Renseignez un poids et une longueur valides.');
   }
 
-  const weight = integerMeasurement(parsedWeight);
-  const length = integerMeasurement(parsedLength);
+  const weight = integerMeasurement(input.weightGrams);
+  const length = integerMeasurement(input.lengthCentimeters);
 
   const body = new FormData();
-  body.append('date', dateFromLabel(input.dateLabel).toISOString());
+  body.append('date', input.date.toISOString().slice(0, 10));
   body.append('description', input.description ?? '');
   body.append('length', String(length));
   body.append('locationId', input.locationId);

@@ -21,7 +21,7 @@ export function SpotDetailScreen({ navigation, route }: Props) {
   const { data: spot, loading } = useSpotDetail(route.params.spotId);
 
   const showUnavailable = () => {
-    Alert.alert('Fonction bientot disponible', 'Cette action sera ajoutee apres la demo.');
+    Alert.alert('Fonction bientot disponible', 'Cette action sera ajoutee prochainement.');
   };
 
   if (loading || !spot) {
