@@ -2,6 +2,8 @@ import { NotificationItem, ServiceResult } from '../types/domain';
 
 const delay = 160;
 
+// TEMP_FALLBACK_DATA: Notifications are local until a notifications endpoint exists.
+// TODO_BACKEND: Replace with real notification events from the backend.
 const fallbackNotifications: NotificationItem[] = [
   { id: 'notification-1', type: 'like', actor: 'Sophie Martin', content: 'a aime votre prise', timeLabel: 'Il y a 5 min', read: false },
   { id: 'notification-2', type: 'comment', actor: 'Marc Dubois', content: 'a commente votre post', timeLabel: 'Il y a 15 min', read: false },

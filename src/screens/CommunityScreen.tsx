@@ -22,12 +22,16 @@ type FeedFilter = 'Tous' | 'Amis' | 'Tendances' | 'Mes spots';
 const filters: FeedFilter[] = ['Tous', 'Amis', 'Tendances', 'Mes spots'];
 
 function PostCard({
+  onBookmark,
+  onLike,
   onOpen,
   onOpenSpot,
   onOpenUser,
   onShare,
   post,
 }: {
+  onBookmark: () => void;
+  onLike: () => void;
   onOpen: () => void;
   onOpenSpot: () => void;
   onOpenUser: () => void;
@@ -66,10 +70,10 @@ function PostCard({
       ) : null}
 
       <View style={styles.actionBar}>
-        <View style={styles.actionButton}>
-          <Ionicons name="heart-outline" size={20} color={colors.textMuted} />
-          <Text style={styles.actionText}>{post.likes}</Text>
-        </View>
+        <Pressable accessibilityLabel="Aimer la publication" accessibilityRole="button" onPress={onLike} style={styles.actionButton}>
+          <Ionicons name={post.liked ? 'heart' : 'heart-outline'} size={20} color={post.liked ? colors.earth : colors.textMuted} />
+          <Text style={[styles.actionText, post.liked && styles.actionTextActive]}>{post.likes}</Text>
+        </Pressable>
         <View style={styles.actionButton}>
           <Ionicons name="chatbubble-outline" size={19} color={colors.textMuted} />
           <Text style={styles.actionText}>{post.comments}</Text>
@@ -77,6 +81,9 @@ function PostCard({
         <View style={styles.actionSpacer} />
         <Pressable accessibilityLabel="Partager la publication" accessibilityRole="button" onPress={onShare} style={styles.iconAction}>
           <Ionicons name="share-outline" size={19} color={colors.textMuted} />
+        </Pressable>
+        <Pressable accessibilityLabel="Enregistrer la publication" accessibilityRole="button" onPress={onBookmark} style={styles.iconAction}>
+          <Ionicons name={post.bookmarked ? 'bookmark' : 'bookmark-outline'} size={19} color={post.bookmarked ? colors.primary : colors.textMuted} />
         </Pressable>
       </View>
     </Card>
@@ -86,7 +93,7 @@ function PostCard({
 export function CommunityScreen() {
   const navigation = useNavigation<RootNavigation>();
   const [activeFilter, setActiveFilter] = useState<FeedFilter>('Tous');
-  const { data: posts, loading } = usePosts();
+  const { data: posts, loading, toggleBookmark, toggleLike } = usePosts();
 
   const sharePost = async (post: CatchPost) => {
     await Share.share({
@@ -151,6 +158,8 @@ export function CommunityScreen() {
         {!loading && visiblePosts.map((post) => (
           <PostCard
             key={post.id}
+            onBookmark={() => toggleBookmark(post.id)}
+            onLike={() => toggleLike(post.id)}
             onOpen={() => navigation.navigate('PostDetail', { postId: post.id })}
             onOpenSpot={() => post.spotId && navigation.navigate('SpotDetail', { spotId: post.spotId })}
             onOpenUser={() => navigation.navigate('UserProfile', { userId: post.author.id })}
@@ -257,6 +266,9 @@ const styles = StyleSheet.create({
     fontFamily: typography.fontFamilyBold,
     fontSize: 13,
     fontWeight: typography.weights.bold,
+  },
+  actionTextActive: {
+    color: colors.earth,
   },
   pressed: {
     opacity: 0.72,

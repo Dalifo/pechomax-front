@@ -17,16 +17,6 @@ const sections: SettingsSection[] = [
     title: 'Compte',
     items: [
       { id: 'notifications', label: 'Notifications', value: 'Activees', icon: 'notifications-outline' },
-      { id: 'privacy', label: 'Confidentialite', icon: 'lock-closed-outline' },
-      { id: 'language', label: 'Langue', value: 'Francais', icon: 'globe-outline' },
-    ],
-  },
-  {
-    title: 'Preferences',
-    items: [
-      { id: 'dark', label: 'Mode sombre', value: 'Desactive', icon: 'moon-outline' },
-      { id: 'vibrations', label: 'Vibrations', value: 'Activees', icon: 'phone-portrait-outline' },
-      { id: 'location', label: 'Localisation', value: 'Toujours', icon: 'location-outline' },
     ],
   },
   {
@@ -51,10 +41,6 @@ const sections: SettingsSection[] = [
 
 export function SettingsScreen({ navigation }: Props) {
   const { logout } = useAuth();
-
-  const showUnavailable = () => {
-    Alert.alert('Fonction bientot disponible', 'Cette action sera ajoutee prochainement.');
-  };
 
   const confirmLogout = () => {
     Alert.alert('Deconnexion', 'Voulez-vous vous deconnecter ?', [
@@ -120,7 +106,6 @@ export function SettingsScreen({ navigation }: Props) {
                     navigation.navigate('Logbook');
                     return;
                   }
-                  showUnavailable();
                 }}
                 title={item.label}
               />

@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AppHeader } from '../components/layout/AppHeader';
 import { Screen } from '../components/layout/Screen';
 import { Badge } from '../components/ui/Badge';
@@ -26,9 +26,6 @@ export function ShopsScreen({ navigation }: Props) {
   const [selectedShop, setSelectedShop] = useState<Shop | null>(null);
   const [favorites, setFavorites] = useState<EntityId[]>([]);
   const { filteredShops, loading } = useShops(category);
-  const showUnavailable = () => {
-    Alert.alert('Fonction bientot disponible', 'Cette action sera ajoutee prochainement.');
-  };
 
   if (selectedShop) {
     const favorite = favorites.includes(selectedShop.id);
@@ -74,8 +71,8 @@ export function ShopsScreen({ navigation }: Props) {
               </View>
             ))}
           </Card>
-          <Button iconLeft="call-outline" onPress={showUnavailable} title="Appeler" />
-          <Button iconLeft="navigate-outline" onPress={showUnavailable} title="Itineraire" variant="outline" />
+          <Button iconLeft="call-outline" onPress={() => Linking.openURL(`tel:${selectedShop.phone.replace(/\s/g, '')}`)} title="Appeler" />
+          <Button iconLeft="navigate-outline" onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedShop.address)}`)} title="Itineraire" variant="outline" />
         </View>
       </Screen>
     );

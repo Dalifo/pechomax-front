@@ -125,11 +125,11 @@ export function MapViewScreen() {
       PanResponder.create({
         onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dy) > 8,
         onPanResponderMove: (_, gesture) => {
-          sheetTranslateY.setValue(Math.max(-120, Math.min(110, gesture.dy)));
+          sheetTranslateY.setValue(Math.max(-170, Math.min(300, gesture.dy)));
         },
         onPanResponderRelease: (_, gesture) => {
           Animated.spring(sheetTranslateY, {
-            toValue: gesture.dy < -40 ? -120 : gesture.dy > 40 ? 110 : 0,
+            toValue: gesture.dy < -40 ? -170 : gesture.dy > 60 ? 300 : 0,
             useNativeDriver: true,
           }).start();
         },

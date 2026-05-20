@@ -1,8 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useMemo, useState } from 'react';
-import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import RNMapView, { MapPressEvent, Marker } from 'react-native-maps';
 import { AppHeader } from '../components/layout/AppHeader';
 import { Screen } from '../components/layout/Screen';
 import { Button } from '../components/ui/Button';
@@ -43,12 +45,6 @@ function formatDateLabel(date: Date) {
   return new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }).format(date);
 }
 
-function shiftDate(date: Date, days: number) {
-  const next = new Date(date);
-  next.setDate(next.getDate() + days);
-  return next;
-}
-
 function integerFromInput(value: string) {
   const parsed = Number.parseInt(value.replace(/[^\d]/g, ''), 10);
   return Number.isFinite(parsed) ? parsed : null;
@@ -78,6 +74,7 @@ export function CreatePostScreen({ navigation }: Props) {
   const [weightGrams, setWeightGrams] = useState('');
   const [lengthCentimeters, setLengthCentimeters] = useState('');
   const [catchDate, setCatchDate] = useState(() => new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [description, setDescription] = useState('');
   const [photo, setPhoto] = useState<SelectedPhoto | null>(null);
   const [loadingOptions, setLoadingOptions] = useState(true);
@@ -181,6 +178,19 @@ export function CreatePostScreen({ navigation }: Props) {
       mimeType: asset.mimeType ?? 'image/jpeg',
       uri: asset.uri,
     });
+  };
+
+  const updateSpotPin = (latitude: number, longitude: number) => {
+    setSpotDraft((current) => ({
+      ...current,
+      latitude: latitude.toFixed(6),
+      longitude: longitude.toFixed(6),
+    }));
+  };
+
+  const onSpotMapPress = (event: MapPressEvent) => {
+    const { latitude, longitude } = event.nativeEvent.coordinate;
+    updateSpotPin(latitude, longitude);
   };
 
   const submit = async () => {
@@ -303,7 +313,16 @@ export function CreatePostScreen({ navigation }: Props) {
 
             <View style={styles.sectionHeader}>
               <Text style={styles.label}>Spot</Text>
-              <Button iconLeft="add" onPress={() => setSpotModalVisible(true)} size="sm" title="Creer un spot" variant="outline" />
+              <Button
+                iconLeft="add"
+                onPress={() => {
+                  setSpotDraft(defaultSpotDraft);
+                  setSpotModalVisible(true);
+                }}
+                size="sm"
+                title="Creer un spot"
+                variant="outline"
+              />
             </View>
             {spots.length > 0 ? (
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -342,15 +361,28 @@ export function CreatePostScreen({ navigation }: Props) {
             />
 
             <View style={styles.dateBlock}>
-              <Text style={styles.label}>Date</Text>
-              <View style={styles.dateRow}>
-                <Button onPress={() => setCatchDate((current) => shiftDate(current, -1))} size="sm" title="-1 jour" variant="outline" />
-                <View style={styles.dateValue}>
-                  <Text style={styles.dateText}>{formatDateLabel(catchDate)}</Text>
-                </View>
-                <Button onPress={() => setCatchDate((current) => shiftDate(current, 1))} size="sm" title="+1 jour" variant="outline" />
-              </View>
-              <Button onPress={() => setCatchDate(new Date())} size="sm" title="Aujourd'hui" variant="ghost" />
+              <Text style={styles.label}>Date de la prise</Text>
+              <Pressable accessibilityRole="button" onPress={() => setShowDatePicker(true)} style={styles.dateValue}>
+                <Ionicons name="calendar-outline" size={18} color={colors.textMuted} />
+                <Text style={styles.dateText}>{formatDateLabel(catchDate)}</Text>
+              </Pressable>
+              {showDatePicker ? (
+                <DateTimePicker
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  maximumDate={new Date()}
+                  mode="date"
+                  onChange={(_, selectedDate) => {
+                    if (Platform.OS !== 'ios') {
+                      setShowDatePicker(false);
+                    }
+
+                    if (selectedDate) {
+                      setCatchDate(selectedDate);
+                    }
+                  }}
+                  value={catchDate}
+                />
+              ) : null}
             </View>
 
             <Input
@@ -387,6 +419,31 @@ export function CreatePostScreen({ navigation }: Props) {
               </Pressable>
             </View>
             <Input label="Nom du spot" onChangeText={(name) => setSpotDraft((current) => ({ ...current, name }))} value={spotDraft.name} />
+            <View style={styles.spotMapWrap}>
+              <RNMapView
+                initialRegion={{
+                  latitude: coordinateFromInput(spotDraft.latitude) ?? 46.603354,
+                  latitudeDelta: 0.08,
+                  longitude: coordinateFromInput(spotDraft.longitude) ?? 1.888334,
+                  longitudeDelta: 0.08,
+                }}
+                onPress={onSpotMapPress}
+                style={styles.spotMap}
+              >
+                <Marker
+                  coordinate={{
+                    latitude: coordinateFromInput(spotDraft.latitude) ?? 46.603354,
+                    longitude: coordinateFromInput(spotDraft.longitude) ?? 1.888334,
+                  }}
+                  draggable
+                  onDragEnd={(event) => {
+                    const { latitude, longitude } = event.nativeEvent.coordinate;
+                    updateSpotPin(latitude, longitude);
+                  }}
+                />
+              </RNMapView>
+            </View>
+            <Text style={styles.helperText}>Touchez la carte ou deplacez le repere pour placer le spot.</Text>
             <Input
               inputStyle={styles.textAreaSmall}
               label="Description"
@@ -411,7 +468,7 @@ export function CreatePostScreen({ navigation }: Props) {
                 value={spotDraft.longitude}
               />
             </View>
-            <Text style={styles.helperText}>Astuce: ajustez les coordonnees depuis la carte, puis publiez votre prise ici.</Text>
+            <Text style={styles.helperText}>Position selectionnee: {spotDraft.latitude}, {spotDraft.longitude}</Text>
             <Button loading={creatingSpot} onPress={submitSpot} title="Creer ce spot" />
           </Card>
         </View>
@@ -510,7 +567,8 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: radius.md,
     borderWidth: 1,
-    flex: 1,
+    flexDirection: 'row',
+    gap: spacing.sm,
     minHeight: 40,
     justifyContent: 'center',
     paddingHorizontal: spacing.md,
@@ -539,6 +597,17 @@ const styles = StyleSheet.create({
   },
   textAreaSmall: {
     minHeight: 82,
+  },
+  spotMapWrap: {
+    borderColor: opacity.black08,
+    borderRadius: radius.lg,
+    borderWidth: StyleSheet.hairlineWidth,
+    height: 220,
+    overflow: 'hidden',
+  },
+  spotMap: {
+    height: '100%',
+    width: '100%',
   },
   pressed: {
     opacity: 0.72,

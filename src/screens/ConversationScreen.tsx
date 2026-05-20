@@ -1,12 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AppHeader } from '../components/layout/AppHeader';
 import { Screen } from '../components/layout/Screen';
 import { Avatar } from '../components/ui/Avatar';
 import { EmptyState } from '../components/ui/EmptyState';
-import { IconButton } from '../components/ui/IconButton';
 import { Input } from '../components/ui/Input';
 import { useConversation } from '../hooks/useConversation';
 import { RootStackParamList } from '../navigation/types';
@@ -18,10 +17,6 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Conversation'>;
 export function ConversationScreen({ navigation, route }: Props) {
   const { conversation, loading, messages, send } = useConversation(route.params.conversationId);
   const [draft, setDraft] = useState('');
-
-  const showUnavailable = () => {
-    Alert.alert('Fonction bientot disponible', 'Cette action sera ajoutee prochainement.');
-  };
 
   const submit = async () => {
     const text = draft.trim();
@@ -50,7 +45,6 @@ export function ConversationScreen({ navigation, route }: Props) {
   return (
     <Screen padded={false}>
       <AppHeader
-        action={<IconButton accessibilityLabel="Options" icon="ellipsis-vertical" onPress={showUnavailable} variant="soft" />}
         onBack={navigation.goBack}
         showBack
         subtitle={conversation.online ? 'En ligne' : 'Hors ligne'}
@@ -66,7 +60,6 @@ export function ConversationScreen({ navigation, route }: Props) {
           ))}
         </ScrollView>
         <View style={styles.inputBar}>
-          <IconButton accessibilityLabel="Ajouter une image" icon="image-outline" onPress={showUnavailable} variant="soft" />
           <Input
             accessibilityLabel="Envoyer un message"
             containerStyle={styles.input}
@@ -74,7 +67,9 @@ export function ConversationScreen({ navigation, route }: Props) {
             placeholder="Envoyer un message..."
             value={draft}
           />
-          <IconButton accessibilityLabel="Envoyer" disabled={!draft.trim()} icon="send" onPress={submit} variant="primary" />
+          <Pressable accessibilityRole="button" disabled={!draft.trim()} onPress={submit} style={[styles.sendButton, !draft.trim() && styles.sendButtonDisabled]}>
+            <Ionicons name="send" size={19} color={colors.background} />
+          </Pressable>
         </View>
       </KeyboardAvoidingView>
     </Screen>
@@ -168,5 +163,16 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
+  },
+  sendButton: {
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    borderRadius: radius.round,
+    height: 50,
+    justifyContent: 'center',
+    width: 50,
+  },
+  sendButtonDisabled: {
+    opacity: 0.44,
   },
 });

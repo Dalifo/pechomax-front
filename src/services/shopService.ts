@@ -2,6 +2,8 @@ import { ServiceResult, Shop } from '../types/domain';
 
 const delay = 160;
 
+// TEMP_FALLBACK_DATA: Partner shops are local until a shops/partners endpoint exists.
+// TODO_BACKEND: Replace with a real shops API.
 const fallbackShops: Shop[] = [
   {
     id: 'fallback-shop-1',

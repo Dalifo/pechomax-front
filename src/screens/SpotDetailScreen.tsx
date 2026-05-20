@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { Share, StyleSheet, Text, View } from 'react-native';
 import { AppHeader } from '../components/layout/AppHeader';
 import { Screen } from '../components/layout/Screen';
 import { Avatar } from '../components/ui/Avatar';
@@ -9,7 +9,6 @@ import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
-import { IconButton } from '../components/ui/IconButton';
 import { SectionTitle } from '../components/ui/SectionTitle';
 import { useSpotDetail } from '../hooks/useSpotDetail';
 import { RootStackParamList } from '../navigation/types';
@@ -19,10 +18,6 @@ type Props = NativeStackScreenProps<RootStackParamList, 'SpotDetail'>;
 
 export function SpotDetailScreen({ navigation, route }: Props) {
   const { data: spot, loading } = useSpotDetail(route.params.spotId);
-
-  const showUnavailable = () => {
-    Alert.alert('Fonction bientot disponible', 'Cette action sera ajoutee prochainement.');
-  };
 
   if (loading || !spot) {
     return (
@@ -36,14 +31,6 @@ export function SpotDetailScreen({ navigation, route }: Props) {
   return (
     <Screen padded={false} scroll>
       <AppHeader
-        action={
-          <IconButton
-            accessibilityLabel="Ajouter aux favoris"
-            icon="heart-outline"
-            onPress={showUnavailable}
-            variant="soft"
-          />
-        }
         onBack={navigation.goBack}
         showBack
         title="Spot"
@@ -127,8 +114,12 @@ export function SpotDetailScreen({ navigation, route }: Props) {
           <EmptyState description="Soyez le premier a commenter ce spot." icon="chatbubble-outline" title="Aucun commentaire" />
         )}
 
-        <Button onPress={showUnavailable} title="Ajouter un commentaire" />
-        <Button onPress={showUnavailable} title="Ajouter une photo" variant="outline" />
+        <Button
+          iconLeft="share-outline"
+          onPress={() => Share.share({ message: `${spot.name} - ${spot.conditions ?? 'Spot PechoMax'}`, title: spot.name })}
+          title="Partager le spot"
+          variant="outline"
+        />
       </View>
     </Screen>
   );

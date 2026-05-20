@@ -2,6 +2,8 @@ import { Article, ServiceResult } from '../types/domain';
 
 const delay = 160;
 
+// TEMP_FALLBACK_DATA: Editorial articles are local until a content endpoint exists.
+// TODO_BACKEND: Replace with a real articles/content API.
 const fallbackArticles: Article[] = [
   {
     id: 'fallback-article-1',

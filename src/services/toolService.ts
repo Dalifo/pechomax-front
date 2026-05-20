@@ -2,6 +2,8 @@ import { FishingTool, ServiceResult } from '../types/domain';
 
 const delay = 120;
 
+// TEMP_FALLBACK_DATA: Tools are static helper content until weather/calculator endpoints exist.
+// TODO_BACKEND: Replace live conditions with real tools/weather APIs.
 const fallbackTools: FishingTool[] = [
   {
     id: 'conditions',

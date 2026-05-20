@@ -2,14 +2,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import { AppHeader } from '../components/layout/AppHeader';
 import { Screen } from '../components/layout/Screen';
 import { Avatar } from '../components/ui/Avatar';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
-import { IconButton } from '../components/ui/IconButton';
 import { SectionTitle } from '../components/ui/SectionTitle';
 import { usePosts } from '../hooks/usePosts';
 import { useUserProfile } from '../hooks/useUserProfile';
@@ -24,10 +23,6 @@ export function UserProfileScreen({ navigation, route }: Props) {
   const { data: posts } = usePosts();
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
 
-  const showUnavailable = () => {
-    Alert.alert('Fonction bientot disponible', 'Cette action sera ajoutee prochainement.');
-  };
-
   if (loading || !profile) {
     return (
       <Screen padded={false}>
@@ -40,7 +35,6 @@ export function UserProfileScreen({ navigation, route }: Props) {
   return (
     <Screen padded={false} scroll>
       <AppHeader
-        action={<IconButton accessibilityLabel="Options" icon="ellipsis-vertical" onPress={showUnavailable} variant="soft" />}
         onBack={navigation.goBack}
         showBack
         title="Profil utilisateur"
@@ -70,12 +64,12 @@ export function UserProfileScreen({ navigation, route }: Props) {
 
         <View style={styles.actionsRow}>
           <Button
-            onPress={showUnavailable}
-            title="S'abonner"
-            variant="primary"
+            iconLeft="share-outline"
+            onPress={() => Share.share({ message: `Profil PechoMax de ${profile.displayName}`, title: profile.displayName })}
+            title="Partager le profil"
+            variant="outline"
             fullWidth
           />
-          <IconButton accessibilityLabel="Partager le profil" icon="share-outline" onPress={showUnavailable} variant="soft" />
         </View>
 
         <SectionTitle

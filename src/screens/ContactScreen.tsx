@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { BrandLogo } from '../components/brand/BrandLogo';
 import { AppHeader } from '../components/layout/AppHeader';
 import { Screen } from '../components/layout/Screen';
@@ -29,7 +29,9 @@ export function ContactScreen({ navigation }: Props) {
       return;
     }
 
-    Alert.alert('Fonction bientot disponible', 'Le formulaire de contact sera ajoute prochainement.');
+    const subject = encodeURIComponent(`[PechoMax] ${reason}`);
+    const body = encodeURIComponent(`${message}\n\n${name}\n${email}`);
+    Linking.openURL(`mailto:contact@pechomax.dev?subject=${subject}&body=${body}`);
   };
 
   return (
@@ -39,19 +41,19 @@ export function ContactScreen({ navigation }: Props) {
         <Card style={styles.heroCard}>
           <BrandLogo color={colors.primary} height={34} width={160} />
           <Text style={styles.heroTitle}>Nous contacter</Text>
-          <Text style={styles.muted}>Le formulaire de contact sera disponible prochainement.</Text>
+          <Text style={styles.muted}>Envoyez votre demande a l equipe PechoMax.</Text>
         </Card>
 
         <View style={styles.contactMethods}>
           <Card padding="md" style={styles.methodCard}>
             <Ionicons name="mail-outline" size={23} color={colors.primary} />
             <Text style={styles.methodTitle}>Email</Text>
-            <Text style={styles.muted}>Contact bientot disponible</Text>
+            <Text style={styles.muted}>contact@pechomax.dev</Text>
           </Card>
           <Card padding="md" style={styles.methodCard}>
             <Ionicons name="call-outline" size={23} color={colors.secondary} />
             <Text style={styles.methodTitle}>Telephone</Text>
-            <Text style={styles.muted}>Contact bientot disponible</Text>
+            <Text style={styles.muted}>Support par email</Text>
           </Card>
         </View>
 

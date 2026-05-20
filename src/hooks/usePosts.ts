@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { createPost, CreatePostInput, getPosts } from '../services/postService';
+import { createPost, CreatePostInput, getPosts, setPostLiked, setPostSaved } from '../services/postService';
 import { CatchPost, EntityId } from '../types/domain';
 
 type PostsState = {
@@ -26,25 +26,63 @@ export function usePosts() {
     refresh();
   }, [refresh]);
 
-  const toggleLike = useCallback((postId: EntityId) => {
+  const toggleLike = useCallback(async (postId: EntityId) => {
+    const post = state.data.find((item) => item.id === postId);
+    if (!post) {
+      return;
+    }
+
+    const nextLiked = !post.liked;
     setState((current) => ({
       ...current,
       data: current.data.map((post) =>
         post.id === postId
-          ? { ...post, liked: !post.liked, likes: post.liked ? post.likes - 1 : post.likes + 1 }
+          ? { ...post, liked: nextLiked, likes: Math.max(0, post.likes + (nextLiked ? 1 : -1)) }
           : post,
       ),
     }));
-  }, []);
+    try {
+      const social = await setPostLiked(postId, nextLiked);
+      setState((current) => ({
+        ...current,
+        data: current.data.map((item) =>
+          item.id === postId
+            ? { ...item, comments: Number(social.commentsCount), liked: social.isLikedByMe, likes: Number(social.likesCount) }
+            : item,
+        ),
+      }));
+    } catch {
+      refresh();
+    }
+  }, [refresh, state.data]);
 
-  const toggleBookmark = useCallback((postId: EntityId) => {
+  const toggleBookmark = useCallback(async (postId: EntityId) => {
+    const post = state.data.find((item) => item.id === postId);
+    if (!post) {
+      return;
+    }
+
+    const nextSaved = !post.bookmarked;
     setState((current) => ({
       ...current,
       data: current.data.map((post) =>
-        post.id === postId ? { ...post, bookmarked: !post.bookmarked } : post,
+        post.id === postId ? { ...post, bookmarked: nextSaved } : post,
       ),
     }));
-  }, []);
+    try {
+      const social = await setPostSaved(postId, nextSaved);
+      setState((current) => ({
+        ...current,
+        data: current.data.map((item) =>
+          item.id === postId
+            ? { ...item, bookmarked: social.isSavedByMe }
+            : item,
+        ),
+      }));
+    } catch {
+      refresh();
+    }
+  }, [refresh, state.data]);
 
   return { ...state, refresh, toggleBookmark, toggleLike };
 }

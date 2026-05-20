@@ -50,7 +50,7 @@ export function SplashScreen({ navigation }: Props) {
 
       navigation.reset({
         index: 0,
-        routes: [{ name: state.isAuthenticated ? 'MainTabs' : 'Welcome' }],
+        routes: [{ name: state.isAuthenticated ? 'MainTabs' : 'Login' }],
       });
     }
 

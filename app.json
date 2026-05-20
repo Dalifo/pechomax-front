@@ -23,7 +23,8 @@
         {
           "photosPermission": "PechoMax utilise vos photos pour ajouter une image a vos prises."
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ]
   }
 }

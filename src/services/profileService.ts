@@ -8,6 +8,9 @@ export type UpdateProfileInput = {
   displayName: string;
   headline: string;
   location?: string;
+  profilePicUri?: string;
+  profilePicName?: string;
+  profilePicType?: string;
 };
 
 export async function getProfile(): Promise<UserProfile> {
@@ -27,6 +30,14 @@ export async function updateProfile(input: UpdateProfileInput): Promise<UserProf
     body.append('region', input.location.trim());
   }
 
+  if (input.profilePicUri) {
+    body.append('profilePic', {
+      name: input.profilePicName ?? 'profile.jpg',
+      type: input.profilePicType ?? 'image/jpeg',
+      uri: input.profilePicUri,
+    } as unknown as Blob);
+  }
+
   const user = await httpClient.put<BackendUser>('/users/update/self', body);
   return mapUserProfile(user);
 }
@@ -41,4 +52,3 @@ export async function getUserProfile(userId: EntityId): Promise<UserProfile> {
 
   return mapUserProfile(user);
 }
-

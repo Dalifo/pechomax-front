@@ -8,6 +8,7 @@ import {
   FishingSpot,
   LogbookCatch,
   Message,
+  PostComment,
   UserSummary,
   WaterType,
 } from '../types/domain';
@@ -16,6 +17,7 @@ import {
   BackendAuthPayload,
   BackendAuthSelf,
   BackendCatch,
+  BackendCatchComment,
   BackendConversation,
   BackendLocation,
   BackendMessage,
@@ -114,6 +116,11 @@ export function mapUserSummary(user?: BackendUser | null, fallbackId = ''): User
   };
 }
 
+function numberFromBackend(value: number | string | null | undefined) {
+  const parsed = typeof value === 'string' ? Number.parseInt(value, 10) : value;
+  return Number.isFinite(parsed) ? Number(parsed) : 0;
+}
+
 export function mapAuthUserFromPayload(payload: BackendAuthPayload | BackendAuthSelf, email = ''): AuthUser {
   const sub = 'sub' in payload ? payload.sub : payload;
   const name = sub.username;
@@ -141,8 +148,8 @@ export function mapCatchPost(item: BackendCatch): CatchPost {
 
   return {
     author: mapUserSummary(item.user, item.user_id ?? ''),
-    bookmarked: false,
-    comments: 0,
+    bookmarked: Boolean(item.isSavedByMe),
+    comments: numberFromBackend(item.commentsCount),
     content: item.description || `Nouvelle prise: ${item.species?.name ?? 'Poisson'}`,
     createdAtLabel: relativeDateLabel(item.created_at ?? item.date),
     fishName: item.species?.name ?? 'Poisson',
@@ -150,8 +157,8 @@ export function mapCatchPost(item: BackendCatch): CatchPost {
     id: item.id,
     imageUrl,
     lengthLabel: `${item.length} cm`,
-    liked: false,
-    likes: Math.max(0, Math.round((item.point_value ?? 0) / 100)),
+    liked: Boolean(item.isLikedByMe),
+    likes: numberFromBackend(item.likesCount),
     spotId: item.location?.id ?? item.location_id,
     spotName: item.location?.name,
     weightLabel: `${item.weight} g`,
@@ -164,7 +171,16 @@ export function mapCatchPostDetail(item: BackendCatch): CatchPostDetail {
     commentsList: [],
     description: item.description || '',
     detailDateLabel: dateTimeLabel(item.date),
-    saves: 0,
+    saves: numberFromBackend(item.savesCount),
+  };
+}
+
+export function mapPostComment(item: BackendCatchComment): PostComment {
+  return {
+    author: mapUserSummary(item.user, item.user_id),
+    id: item.id,
+    text: item.content,
+    timeLabel: relativeDateLabel(item.created_at),
   };
 }
 

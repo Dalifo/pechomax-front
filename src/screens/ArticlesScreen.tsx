@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { AppHeader } from '../components/layout/AppHeader';
 import { Screen } from '../components/layout/Screen';
 import { Badge } from '../components/ui/Badge';
@@ -23,9 +23,7 @@ export function ArticlesScreen({ navigation }: Props) {
   const [category, setCategory] = useState('Tous');
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const { filteredArticles, loading, toggleSaved } = useArticles(category);
-  const showUnavailable = () => {
-    Alert.alert('Fonction bientot disponible', 'Cette action sera ajoutee prochainement.');
-  };
+  const shareArticle = (article: Article) => Share.share({ message: `${article.title}\n${article.excerpt}`, title: article.title });
 
   if (selectedArticle) {
     return (
@@ -63,7 +61,7 @@ export function ArticlesScreen({ navigation }: Props) {
             <Text style={styles.cardTitle}>Conseil PechoMax</Text>
             <Text style={styles.bodyText}>Verifiez toujours les conditions locales, la reglementation et l acces au spot avant de partir.</Text>
           </Card>
-          <Button iconLeft="share-outline" onPress={showUnavailable} title="Partager cet article" />
+          <Button iconLeft="share-outline" onPress={() => shareArticle(selectedArticle)} title="Partager cet article" />
         </View>
       </Screen>
     );

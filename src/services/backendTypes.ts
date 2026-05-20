@@ -85,6 +85,29 @@ export type BackendCatch = {
   user?: BackendUser | null;
   species?: BackendSpecies | null;
   location?: BackendLocation | null;
+  likesCount?: number | string | null;
+  commentsCount?: number | string | null;
+  savesCount?: number | string | null;
+  isLikedByMe?: boolean | null;
+  isSavedByMe?: boolean | null;
+};
+
+export type BackendCatchSocial = {
+  likesCount: number | string;
+  commentsCount: number | string;
+  savesCount: number | string;
+  isLikedByMe: boolean;
+  isSavedByMe: boolean;
+};
+
+export type BackendCatchComment = {
+  id: string;
+  catch_id: string;
+  user_id: string;
+  content: string;
+  created_at?: string;
+  updated_at?: string;
+  user?: BackendUser | null;
 };
 
 export type BackendCategory = {
