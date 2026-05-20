@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AppHeader } from '../components/layout/AppHeader';
 import { Screen } from '../components/layout/Screen';
@@ -22,7 +23,9 @@ const speciesFilters = ['Tous', 'Brochet', 'Sandre', 'Carpe', 'Perche'];
 export function LogbookScreen({ navigation }: Props) {
   const [view, setView] = useState<LogbookView>('list');
   const [species, setSpecies] = useState('Tous');
-  const { filteredCatches, loading, stats } = useLogbook(species);
+  const { filteredCatches, loading, refresh, stats } = useLogbook(species);
+
+  useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
   const visibleCatches = filteredCatches;
 
   return (
