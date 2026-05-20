@@ -143,7 +143,7 @@ export function SpotDetailScreen({ navigation, route }: Props) {
 
   return (
     <Screen padded={false} scroll>
-      <AppHeader onBack={navigation.goBack} showBack title="Spot" />
+      <AppHeader onBack={navigation.goBack} showBack title={spot.name} titleStyle={styles.headerTitle} />
 
       {spot.imageUrl ? (
         <Image source={{ uri: spot.imageUrl }} style={styles.heroImage} />
@@ -155,7 +155,6 @@ export function SpotDetailScreen({ navigation, route }: Props) {
 
       <View style={styles.content}>
         <View>
-          <Text style={styles.title}>{spot.name}</Text>
           <View style={styles.metaRow}>
             <Ionicons name="location-outline" size={17} color={colors.textMuted} />
             <Text style={styles.muted}>{spot.location}</Text>
@@ -279,6 +278,9 @@ const styles = StyleSheet.create({
   content: {
     gap: spacing.lg,
     padding: spacing.xxl,
+  },
+  headerTitle: {
+    fontSize: 21,
   },
   title: {
     color: colors.text,

@@ -1,5 +1,5 @@
 import { PropsWithChildren } from 'react';
-import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from 'react-native';
 import { colors, opacity, spacing, typography } from '../../theme/theme';
 import { BrandLogo } from '../brand/BrandLogo';
 import { IconButton } from '../ui/IconButton';
@@ -12,6 +12,7 @@ type AppHeaderProps = PropsWithChildren<{
   style?: StyleProp<ViewStyle>;
   subtitle?: string;
   title?: string;
+  titleStyle?: StyleProp<TextStyle>;
 }>;
 
 export function AppHeader({
@@ -23,6 +24,7 @@ export function AppHeader({
   style,
   subtitle,
   title,
+  titleStyle,
 }: AppHeaderProps) {
   return (
     <View style={[styles.root, style]}>
@@ -40,7 +42,7 @@ export function AppHeader({
 
       <View style={styles.center}>
         {logo ? <BrandLogo color={colors.text} height={28} width={134} /> : null}
-        {!logo && title ? <Text numberOfLines={1} style={styles.title}>{title}</Text> : null}
+        {!logo && title ? <Text numberOfLines={1} style={[styles.title, titleStyle]}>{title}</Text> : null}
         {subtitle ? <Text numberOfLines={1} style={styles.subtitle}>{subtitle}</Text> : null}
         {children}
       </View>
