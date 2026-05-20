@@ -121,13 +121,6 @@ async function restoreAuthState(): Promise<AuthState> {
     return setAuthState({ isAuthenticated: true, token: persisted?.token ?? null, user });
   } catch (error) {
     if (isUnauthorizedError(error)) {
-      // React Native does not reliably persist Hono's signed Set-Cookie across launches.
-      // If a user previously completed real backend login, keep the local snapshot only
-      // for startup; any later protected 401 will clear it and navigate to Login.
-      if (persisted?.isAuthenticated) {
-        return persisted;
-      }
-
       return setAuthState({ isAuthenticated: false, token: null, user: null });
     }
 
