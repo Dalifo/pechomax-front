@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { createPost, CreatePostInput, getPosts, setPostLiked, setPostSaved } from '../services/postService';
+import { createPost, CreatePostInput, getMyPosts, getPosts, setPostLiked, setPostSaved } from '../services/postService';
 import { CatchPost, EntityId } from '../types/domain';
 
 type PostsState = {
@@ -85,6 +85,27 @@ export function usePosts() {
   }, [refresh, state.data]);
 
   return { ...state, refresh, toggleBookmark, toggleLike };
+}
+
+export function useMyPosts() {
+  const [state, setState] = useState<PostsState>({ data: [], loading: true, error: null });
+
+  const refresh = useCallback(async () => {
+    setState((current) => ({ ...current, loading: true, error: null }));
+
+    try {
+      const posts = await getMyPosts();
+      setState({ data: posts, loading: false, error: null });
+    } catch {
+      setState({ data: [], loading: false, error: 'Impossible de charger vos publications.' });
+    }
+  }, []);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  return { ...state, refresh };
 }
 
 export function useCreatePost() {

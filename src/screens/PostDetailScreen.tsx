@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { AppHeader } from '../components/layout/AppHeader';
 import { Screen } from '../components/layout/Screen';
@@ -19,6 +19,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'PostDetail'>;
 
 export function PostDetailScreen({ navigation, route }: Props) {
   const { data: post, loading, submitComment, toggleLike, toggleSave } = usePostDetail(route.params.postId);
+  const scrollRef = useRef<ScrollView>(null);
   const [comment, setComment] = useState('');
   const [commenting, setCommenting] = useState(false);
 
@@ -66,8 +67,17 @@ export function PostDetailScreen({ navigation, route }: Props) {
         showBack
         title="Publication"
       />
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.screenFill}>
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 12 : 0}
+        style={styles.screenFill}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          ref={scrollRef}
+          showsVerticalScrollIndicator={false}
+        >
           <RemoteImage style={styles.photoBlock} uri={post.imageUrl}>
             <Ionicons name="fish-outline" size={72} color={colors.secondary} />
           </RemoteImage>
@@ -147,7 +157,10 @@ export function PostDetailScreen({ navigation, route }: Props) {
             accessibilityLabel="Ajouter un commentaire"
             containerStyle={styles.commentInput}
             onChangeText={setComment}
+            onFocus={() => setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 80)}
             placeholder="Ajouter un commentaire..."
+            returnKeyType="send"
+            onSubmitEditing={sendComment}
             value={comment}
           />
           <Button disabled={!comment.trim()} loading={commenting} onPress={sendComment} title="Envoyer" />

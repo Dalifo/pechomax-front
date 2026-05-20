@@ -75,7 +75,11 @@ export function ConversationsListScreen() {
         {loading ? <EmptyState description="Chargement des messages." icon="chatbubbles-outline" title="Chargement" /> : null}
 
         {!loading && filteredConversations.length === 0 ? (
-          <EmptyState description="Aucune conversation ne correspond a cette recherche." icon="search-outline" title="Aucune conversation" />
+          <EmptyState
+            description={query.trim() ? 'Aucune conversation ne correspond a cette recherche.' : 'Aucune conversation pour le moment.'}
+            icon={query.trim() ? 'search-outline' : 'chatbubble-outline'}
+            title="Aucune conversation"
+          />
         ) : null}
 
         {!loading && filteredConversations.map((conversation) => (

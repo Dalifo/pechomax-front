@@ -1,6 +1,7 @@
 import { CatchPost, CatchPostDetail, EntityId, PostComment } from '../types/domain';
 import { mapCatchPost, mapCatchPostDetail, mapPostComment } from './apiMappers';
 import { BackendCatch, BackendCatchComment, BackendCatchSocial } from './backendTypes';
+import { getCurrentAuthState } from './authService';
 import { ApiError, hasApiAuthToken, httpClient } from './httpClient';
 
 export type CreatePostInput = {
@@ -67,6 +68,27 @@ export async function getPosts(): Promise<CatchPost[]> {
     }),
   );
   return enriched.map(mapCatchPost);
+}
+
+export async function getMyPosts(): Promise<CatchPost[]> {
+  const catches = await httpClient.get<BackendCatch[]>('/catches/self');
+  const currentUser = getCurrentAuthState().user;
+  const backendUser = currentUser
+    ? {
+        email: currentUser.email,
+        id: currentUser.id,
+        profile_pic: currentUser.profilePic ?? null,
+        role: 'User' as const,
+        username: currentUser.name,
+      }
+    : undefined;
+
+  return catches.map((catchItem) =>
+    mapCatchPost({
+      ...catchItem,
+      user: catchItem.user ?? backendUser,
+    }),
+  );
 }
 
 export async function getRecentPosts(limit = 3): Promise<CatchPost[]> {

@@ -11,15 +11,15 @@ import { Card } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
 import { IconButton } from '../components/ui/IconButton';
 import { RemoteImage } from '../components/ui/RemoteImage';
-import { usePosts } from '../hooks/usePosts';
+import { useMyPosts, usePosts } from '../hooks/usePosts';
 import { RootStackParamList } from '../navigation/types';
 import { colors, opacity, radius, spacing, typography } from '../theme/theme';
 import { CatchPost } from '../types/domain';
 
 type RootNavigation = NativeStackNavigationProp<RootStackParamList>;
-type FeedFilter = 'Tous' | 'Amis' | 'Tendances' | 'Mes spots';
+type FeedFilter = 'Tous' | 'Mes publications';
 
-const filters: FeedFilter[] = ['Tous', 'Amis', 'Tendances', 'Mes spots'];
+const filters: FeedFilter[] = ['Tous', 'Mes publications'];
 
 function PostCard({
   onBookmark,
@@ -94,6 +94,7 @@ export function CommunityScreen() {
   const navigation = useNavigation<RootNavigation>();
   const [activeFilter, setActiveFilter] = useState<FeedFilter>('Tous');
   const { data: posts, loading, toggleBookmark, toggleLike } = usePosts();
+  const { data: myPosts, loading: myPostsLoading, refresh: refreshMyPosts } = useMyPosts();
 
   const sharePost = async (post: CatchPost) => {
     await Share.share({
@@ -102,17 +103,22 @@ export function CommunityScreen() {
     });
   };
 
-  const visiblePosts = posts.filter((post) => {
-    if (activeFilter === 'Tendances') {
-      return post.likes >= 30;
-    }
+  const visiblePosts = activeFilter === 'Mes publications' ? myPosts : posts;
+  const isLoading = activeFilter === 'Mes publications' ? myPostsLoading : loading;
 
-    if (activeFilter === 'Mes spots') {
-      return post.bookmarked;
+  const handleLike = async (postId: string) => {
+    await toggleLike(postId);
+    if (activeFilter === 'Mes publications') {
+      refreshMyPosts();
     }
+  };
 
-    return true;
-  });
+  const handleBookmark = async (postId: string) => {
+    await toggleBookmark(postId);
+    if (activeFilter === 'Mes publications') {
+      refreshMyPosts();
+    }
+  };
 
   return (
     <Screen padded={false} scroll>
@@ -149,17 +155,21 @@ export function CommunityScreen() {
           </View>
         </ScrollView>
 
-        {loading ? <EmptyState description="Chargement du fil communaute." title="Chargement" /> : null}
+        {isLoading ? <EmptyState description="Chargement du fil communaute." title="Chargement" /> : null}
 
-        {!loading && visiblePosts.length === 0 ? (
-          <EmptyState description="Aucune publication pour ce filtre." icon="chatbubbles-outline" title="Rien a afficher" />
+        {!isLoading && visiblePosts.length === 0 ? (
+          <EmptyState
+            description={activeFilter === 'Mes publications' ? "Vous n'avez encore publie aucune prise." : 'Aucune publication pour le moment.'}
+            icon="chatbubbles-outline"
+            title="Rien a afficher"
+          />
         ) : null}
 
-        {!loading && visiblePosts.map((post) => (
+        {!isLoading && visiblePosts.map((post) => (
           <PostCard
             key={post.id}
-            onBookmark={() => toggleBookmark(post.id)}
-            onLike={() => toggleLike(post.id)}
+            onBookmark={() => handleBookmark(post.id)}
+            onLike={() => handleLike(post.id)}
             onOpen={() => navigation.navigate('PostDetail', { postId: post.id })}
             onOpenSpot={() => post.spotId && navigation.navigate('SpotDetail', { spotId: post.spotId })}
             onOpenUser={() => navigation.navigate('UserProfile', { userId: post.author.id })}
