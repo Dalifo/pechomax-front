@@ -1,7 +1,5 @@
 import { FishingTool, ServiceResult } from '../types/domain';
 
-// TODO(backend): no tools/weather/regulation endpoint exists in pechomax-backend/apps/server.
-// Deprecated fallback kept for the secondary tools screen.
 const delay = 120;
 
 const fallbackTools: FishingTool[] = [

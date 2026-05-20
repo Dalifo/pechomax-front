@@ -8,6 +8,7 @@ import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
+import { RemoteImage } from '../components/ui/RemoteImage';
 import { useLogbook } from '../hooks/useLogbook';
 import { RootStackParamList } from '../navigation/types';
 import { colors, opacity, radius, spacing, typography } from '../theme/theme';
@@ -116,9 +117,9 @@ function StatCard({ icon, label, value }: { icon: keyof typeof Ionicons.glyphMap
 function CatchCard({ catchItem }: { catchItem: LogbookCatch }) {
   return (
     <Card style={styles.catchCard}>
-      <View style={styles.catchIcon}>
+      <RemoteImage style={styles.catchIcon} uri={catchItem.imageUrl}>
         <Ionicons name="fish-outline" size={28} color={colors.primary} />
-      </View>
+      </RemoteImage>
       <View style={styles.textFill}>
         <View style={styles.rowBetween}>
           <Text style={styles.title}>{catchItem.species}</Text>

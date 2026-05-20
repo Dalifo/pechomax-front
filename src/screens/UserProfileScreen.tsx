@@ -25,7 +25,7 @@ export function UserProfileScreen({ navigation, route }: Props) {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
 
   const showUnavailable = () => {
-    Alert.alert('Fonction a venir', 'Cette action sera disponible prochainement.');
+    Alert.alert('Fonction bientot disponible', 'Cette action sera ajoutee apres la demo.');
   };
 
   if (loading || !profile) {
@@ -47,13 +47,13 @@ export function UserProfileScreen({ navigation, route }: Props) {
       />
 
       <LinearGradient colors={[colors.secondary, colors.earth]} style={styles.hero}>
-        <Avatar initials={profile.displayName.split(' ').map((part) => part[0]).join('')} size="xl" />
+        <Avatar initials={profile.displayName} size="xl" source={profile.profilePic ? { uri: profile.profilePic } : undefined} />
         <View style={styles.heroText}>
           <Text style={styles.name}>{profile.displayName}</Text>
           <Text style={styles.bio}>{profile.headline}</Text>
           <View style={styles.metaRow}>
             <Ionicons name="location-outline" size={13} color={opacity.surface88} />
-            <Text style={styles.metaText}>Lyon, France</Text>
+            <Text style={styles.metaText}>{profile.headline}</Text>
           </View>
         </View>
       </LinearGradient>

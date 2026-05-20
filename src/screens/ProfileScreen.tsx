@@ -101,7 +101,13 @@ export function ProfileScreen() {
         <View style={[styles.heroCircle, styles.heroCircleRight]} />
         <View style={styles.identity}>
           <View style={styles.avatarWrap}>
-            <Avatar initials="PM" label={profile.displayName} size="xl" style={styles.heroAvatar} />
+            <Avatar
+              initials={profile.displayName}
+              label={profile.displayName}
+              size="xl"
+              source={profile.profilePic ? { uri: profile.profilePic } : undefined}
+              style={styles.heroAvatar}
+            />
             <View style={styles.levelBadge}>
               <Text style={styles.levelText}>{profile.level}</Text>
             </View>

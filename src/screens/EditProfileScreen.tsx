@@ -46,7 +46,7 @@ export function EditProfileScreen({ navigation }: Props) {
   };
 
   const showUnavailable = () => {
-    Alert.alert('Fonction a venir', 'Cette action sera disponible prochainement.');
+    Alert.alert('Fonction bientot disponible', 'Cette action sera ajoutee apres la demo.');
   };
 
   if (loading && !profile) {
@@ -69,7 +69,7 @@ export function EditProfileScreen({ navigation }: Props) {
       <View style={styles.content}>
         <Card style={styles.avatarCard}>
           <View style={styles.avatarWrap}>
-            <Avatar initials="MD" size="xl" />
+            <Avatar initials={profile?.displayName ?? 'PM'} size="xl" source={profile?.profilePic ? { uri: profile.profilePic } : undefined} />
             <Pressable
               accessibilityLabel="Changer la photo"
               accessibilityRole="button"

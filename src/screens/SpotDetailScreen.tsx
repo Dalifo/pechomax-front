@@ -21,7 +21,7 @@ export function SpotDetailScreen({ navigation, route }: Props) {
   const { data: spot, loading } = useSpotDetail(route.params.spotId);
 
   const showUnavailable = () => {
-    Alert.alert('Fonction a venir', 'Cette action sera disponible prochainement.');
+    Alert.alert('Fonction bientot disponible', 'Cette action sera ajoutee apres la demo.');
   };
 
   if (loading || !spot) {
@@ -69,9 +69,9 @@ export function SpotDetailScreen({ navigation, route }: Props) {
 
         <SectionTitle icon="fish-outline" title="Poissons disponibles" />
         <View style={styles.badgeRow}>
-          {spot.fish.map((fish) => (
+          {spot.fish.length > 0 ? spot.fish.map((fish) => (
             <Badge key={fish} label={fish} tone="secondary" />
-          ))}
+          )) : <Badge label="Especes a confirmer" tone="neutral" />}
         </View>
 
         <Card>

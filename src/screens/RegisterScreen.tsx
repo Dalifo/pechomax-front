@@ -14,21 +14,21 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
 
 export function RegisterScreen({ navigation }: Props) {
   const { loading, register } = useAuth();
-  const [name, setName] = useState('Marc Dubois');
-  const [email, setEmail] = useState('marc@pechomax.fr');
-  const [password, setPassword] = useState('pechomax');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [touched, setTouched] = useState(false);
 
-  const nameError = touched && name.trim().length < 2 ? 'Nom trop court' : undefined;
+  const nameError = touched && name.trim().length < 4 ? '4 caracteres minimum' : undefined;
   const emailError = touched && !email.includes('@') ? 'Email invalide' : undefined;
-  const passwordError = touched && password.length < 6 ? '6 caractères minimum' : undefined;
+  const passwordError = touched && password.length < 9 ? '9 caracteres minimum' : undefined;
   const canSubmit =
     !nameError &&
     !emailError &&
     !passwordError &&
-    name.trim().length >= 2 &&
+    name.trim().length >= 4 &&
     email.length > 0 &&
-    password.length >= 6;
+    password.length >= 9;
 
   const submit = async () => {
     setTouched(true);
@@ -56,7 +56,7 @@ export function RegisterScreen({ navigation }: Props) {
           <BrandLogo color={colors.text} height={31} width={148} />
         </View>
         <Text style={styles.title}>Créer votre espace pêche.</Text>
-        <Text style={styles.subtitle}>Un compte local de démonstration suffit pour parcourir l’app.</Text>
+        <Text style={styles.subtitle}>Creez un compte PechoMax pour publier et suivre vos prises.</Text>
       </View>
 
       <Card elevated padding="xl" style={styles.card}>

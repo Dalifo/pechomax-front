@@ -29,7 +29,7 @@ export function ContactScreen({ navigation }: Props) {
       return;
     }
 
-    Alert.alert('Fonction a venir', 'Le formulaire de contact sera disponible prochainement.');
+    Alert.alert('Fonction bientot disponible', 'Le formulaire de contact sera ajoute apres la demo.');
   };
 
   return (
@@ -46,12 +46,12 @@ export function ContactScreen({ navigation }: Props) {
           <Card padding="md" style={styles.methodCard}>
             <Ionicons name="mail-outline" size={23} color={colors.primary} />
             <Text style={styles.methodTitle}>Email</Text>
-            <Text style={styles.muted}>Endpoint indisponible</Text>
+            <Text style={styles.muted}>Contact bientot disponible</Text>
           </Card>
           <Card padding="md" style={styles.methodCard}>
             <Ionicons name="call-outline" size={23} color={colors.secondary} />
             <Text style={styles.methodTitle}>Telephone</Text>
-            <Text style={styles.muted}>Endpoint indisponible</Text>
+            <Text style={styles.muted}>Contact bientot disponible</Text>
           </Card>
         </View>
 

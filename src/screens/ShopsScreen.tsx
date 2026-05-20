@@ -27,7 +27,7 @@ export function ShopsScreen({ navigation }: Props) {
   const [favorites, setFavorites] = useState<EntityId[]>([]);
   const { filteredShops, loading } = useShops(category);
   const showUnavailable = () => {
-    Alert.alert('Fonction a venir', 'Cette action sera disponible prochainement.');
+    Alert.alert('Fonction bientot disponible', 'Cette action sera ajoutee apres la demo.');
   };
 
   if (selectedShop) {

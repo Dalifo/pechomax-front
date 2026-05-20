@@ -21,6 +21,11 @@ export class ApiError extends Error {
 type UnauthorizedListener = () => void;
 
 const unauthorizedListeners = new Set<UnauthorizedListener>();
+let authToken: string | null = null;
+
+export function setApiAuthToken(token: string | null) {
+  authToken = token;
+}
 
 export function subscribeUnauthorized(listener: UnauthorizedListener) {
   unauthorizedListeners.add(listener);
@@ -98,6 +103,10 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
 
   if (!headers.has('Accept')) {
     headers.set('Accept', 'application/json');
+  }
+
+  if (authToken && !headers.has('Authorization')) {
+    headers.set('Authorization', `Bearer ${authToken}`);
   }
 
   try {

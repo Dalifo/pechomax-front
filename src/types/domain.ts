@@ -10,6 +10,7 @@ export type UserSummary = {
   initials: string;
   level?: number;
   location?: string;
+  profilePic?: string;
 };
 
 export type AuthUser = UserSummary & {
@@ -32,6 +33,7 @@ export type CatchPost = {
   liked: boolean;
   bookmarked: boolean;
   hasPhoto?: boolean;
+  imageUrl?: string;
 };
 
 export type PostComment = {
@@ -184,6 +186,7 @@ export type LogbookCatch = {
   time: string;
   location: string;
   technique: string;
+  imageUrl?: string;
 };
 
 export type ServiceResult<T> = Promise<T>;

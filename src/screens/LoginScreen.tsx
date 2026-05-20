@@ -14,23 +14,23 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
 export function LoginScreen({ navigation }: Props) {
   const { loading, login } = useAuth();
-  const [email, setEmail] = useState('admin@dmin.com');
-  const [password, setPassword] = useState('adminadmin');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [touched, setTouched] = useState(false);
 
   const emailError = touched && !email.includes('@') ? 'Email invalide' : undefined;
-  const passwordError = touched && password.length < 6 ? '6 caractères minimum' : undefined;
-  const canSubmit = !emailError && !passwordError && email.length > 0 && password.length >= 6;
+  const passwordError = touched && password.length < 9 ? '9 caracteres minimum' : undefined;
+  const canSubmit = !emailError && !passwordError && email.length > 0 && password.length >= 9;
 
-  const submit = async () => {
+  const submit = async (credentials = { email, password }) => {
     setTouched(true);
 
-    if (!canSubmit) {
+    if (credentials.email === email && !canSubmit) {
       return;
     }
 
     try {
-      await login({ email, password });
+      await login(credentials);
       navigation.reset({
         index: 0,
         routes: [{ name: 'MainTabs' }],
@@ -75,8 +75,16 @@ export function LoginScreen({ navigation }: Props) {
           accessibilityLabel="Se connecter"
           fullWidth
           loading={loading}
-          onPress={submit}
+          onPress={() => submit()}
           title="Se connecter"
+        />
+        <Button
+          accessibilityLabel="Connexion demo"
+          fullWidth
+          loading={loading}
+          onPress={() => submit({ email: 'marc@pechomax.dev', password: 'PechoMax123!' })}
+          title="Connexion demo"
+          variant="secondary"
         />
       </Card>
 

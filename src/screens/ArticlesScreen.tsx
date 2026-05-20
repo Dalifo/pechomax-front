@@ -24,7 +24,7 @@ export function ArticlesScreen({ navigation }: Props) {
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const { filteredArticles, loading, toggleSaved } = useArticles(category);
   const showUnavailable = () => {
-    Alert.alert('Fonction a venir', 'Cette action sera disponible prochainement.');
+    Alert.alert('Fonction bientot disponible', 'Cette action sera ajoutee apres la demo.');
   };
 
   if (selectedArticle) {

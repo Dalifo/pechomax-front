@@ -1,7 +1,5 @@
 import { Article, ServiceResult } from '../types/domain';
 
-// TODO(backend): no article/CMS endpoint exists in pechomax-backend/apps/server.
-// Deprecated fallback kept so the secondary article screen remains usable until a real endpoint is added.
 const delay = 160;
 
 const fallbackArticles: Article[] = [

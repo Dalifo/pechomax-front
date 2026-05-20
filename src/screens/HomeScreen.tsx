@@ -10,6 +10,7 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
 import { IconButton } from '../components/ui/IconButton';
+import { RemoteImage } from '../components/ui/RemoteImage';
 import { SectionTitle } from '../components/ui/SectionTitle';
 import { usePosts } from '../hooks/usePosts';
 import { useProfile } from '../hooks/useProfile';
@@ -39,7 +40,7 @@ function RecentPostCard({ onPress, post }: { onPress: () => void; post: CatchPos
   return (
     <Card accessibilityLabel={`Ouvrir la publication ${post.fishName}`} onPress={onPress} style={styles.postCard}>
       <View style={styles.postHeader}>
-        <Avatar initials={post.author.initials} label={post.author.name} size="sm" />
+        <Avatar initials={post.author.initials} label={post.author.name} size="sm" source={post.author.profilePic ? { uri: post.author.profilePic } : undefined} />
         <View style={styles.fill}>
           <Text style={styles.author}>{post.author.name}</Text>
           <Text style={styles.muted}>{post.createdAtLabel}</Text>
@@ -47,6 +48,11 @@ function RecentPostCard({ onPress, post }: { onPress: () => void; post: CatchPos
         {post.likes > 30 ? <Badge label="Tendance" tone="earth" /> : null}
       </View>
       <Text style={styles.postTitle}>{post.fishName}</Text>
+      {post.imageUrl ? (
+        <RemoteImage style={styles.postImage} uri={post.imageUrl}>
+          <Ionicons name="fish-outline" size={42} color={colors.secondary} />
+        </RemoteImage>
+      ) : null}
       <Text style={styles.primaryText}>{post.weightLabel}</Text>
       <View style={styles.metaRow}>
         <Ionicons name="location-outline" size={13} color={colors.textMuted} />
@@ -84,6 +90,7 @@ export function HomeScreen() {
 
   const recentPosts = posts.slice(0, 3);
   const recommendedSpots = spots.slice(0, 3);
+  const profileStatValue = (id: string, fallback: string) => profile?.stats.find((stat) => stat.id === id)?.value ?? fallback;
 
   return (
     <Screen padded={false} scroll>
@@ -109,9 +116,9 @@ export function HomeScreen() {
         </View>
 
         <View style={styles.statsRow}>
-          <StatTile icon="fish-outline" label="Prises" tone="primary" value="47" />
-          <StatTile icon="location-outline" label="Spots" tone="secondary" value="12" />
-          <StatTile icon="trophy-outline" label="Badges" tone="earth" value="8" />
+          <StatTile icon="fish-outline" label="Prises" tone="primary" value={profileStatValue('catches', String(posts.length))} />
+          <StatTile icon="location-outline" label="Spots" tone="secondary" value={profileStatValue('spots', String(spots.length))} />
+          <StatTile icon="trophy-outline" label="Score" tone="earth" value={profileStatValue('score', '0')} />
         </View>
 
         <Card elevated style={styles.challengeCard}>
@@ -154,6 +161,10 @@ export function HomeScreen() {
           />
         ))}
 
+        {!postsLoading && recentPosts.length === 0 ? (
+          <EmptyState description="Aucune prise n'est disponible pour le moment." icon="fish-outline" title="Aucune prise" />
+        ) : null}
+
         <SectionTitle icon="navigate-outline" title="Spots recommandes" />
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.horizontalList}>
@@ -164,6 +175,9 @@ export function HomeScreen() {
                 spot={spot}
               />
             ))}
+            {recommendedSpots.length === 0 ? (
+              <EmptyState description="Aucun spot n'est disponible pour le moment." icon="location-outline" title="Aucun spot" />
+            ) : null}
           </View>
         </ScrollView>
       </View>
@@ -274,6 +288,10 @@ const styles = StyleSheet.create({
   },
   postCard: {
     gap: spacing.md,
+  },
+  postImage: {
+    borderRadius: radius.lg,
+    height: 160,
   },
   postHeader: {
     alignItems: 'center',

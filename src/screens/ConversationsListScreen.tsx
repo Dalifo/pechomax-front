@@ -26,7 +26,7 @@ function ConversationRow({ conversation, onPress }: { conversation: Conversation
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
     >
       <View style={styles.avatarWrap}>
-        <Avatar initials={conversation.user.initials} label={conversation.user.name} size="lg" />
+        <Avatar initials={conversation.user.initials} label={conversation.user.name} size="lg" source={conversation.user.profilePic ? { uri: conversation.user.profilePic } : undefined} />
         {conversation.online ? <View style={styles.onlineDot} /> : null}
       </View>
 

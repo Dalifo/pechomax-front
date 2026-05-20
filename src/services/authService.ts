@@ -2,10 +2,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthUser } from '../types/domain';
 import { mapAuthUserFromPayload, mapAuthUserFromUser } from './apiMappers';
 import { BackendAuthPayload, BackendAuthSelf, BackendUser } from './backendTypes';
-import { httpClient, isUnauthorizedError } from './httpClient';
+import { httpClient, isUnauthorizedError, setApiAuthToken } from './httpClient';
 
 export type AuthState = {
   isAuthenticated: boolean;
+  token?: string | null;
   user: AuthUser | null;
 };
 
@@ -26,6 +27,7 @@ const AUTH_STORAGE_KEY = 'pechomax.authState.v1';
 
 let authState: AuthState = {
   isAuthenticated: false,
+  token: null,
   user: null,
 };
 
@@ -66,13 +68,14 @@ async function readPersistedAuthState() {
 
 async function setAuthState(nextState: AuthState) {
   authState = nextState;
+  setApiAuthToken(nextState.token ?? null);
   await persistAuthState(nextState);
   emit();
   return authState;
 }
 
 export async function clearLocalAuthState() {
-  return setAuthState({ isAuthenticated: false, user: null });
+  return setAuthState({ isAuthenticated: false, token: null, user: null });
 }
 
 async function hydrateUserFromSelf(payload: BackendAuthPayload | BackendAuthSelf, fallbackEmail = '') {
@@ -106,6 +109,7 @@ async function restoreAuthState(): Promise<AuthState> {
     persisted = await readPersistedAuthState();
     if (persisted) {
       authState = persisted;
+      setApiAuthToken(persisted.token ?? null);
       emit();
     }
 
@@ -114,12 +118,9 @@ async function restoreAuthState(): Promise<AuthState> {
       timeoutMs: 1500,
     });
     const user = await hydrateUserFromSelf(payload, persisted?.user?.email ?? '');
-    console.log('restoreSession:success');
-    return setAuthState({ isAuthenticated: true, user });
+    return setAuthState({ isAuthenticated: true, token: persisted?.token ?? null, user });
   } catch (error) {
     if (isUnauthorizedError(error)) {
-      console.log('restoreSession:unauthorized');
-
       // React Native does not reliably persist Hono's signed Set-Cookie across launches.
       // If a user previously completed real backend login, keep the local snapshot only
       // for startup; any later protected 401 will clear it and navigate to Login.
@@ -127,23 +128,20 @@ async function restoreAuthState(): Promise<AuthState> {
         return persisted;
       }
 
-      return setAuthState({ isAuthenticated: false, user: null });
+      return setAuthState({ isAuthenticated: false, token: null, user: null });
     }
 
-    console.log('restoreSession:error', error instanceof Error ? error.message : String(error));
-    return persisted ?? setAuthState({ isAuthenticated: false, user: null });
+    return persisted ?? setAuthState({ isAuthenticated: false, token: null, user: null });
   }
 }
 
 export async function getAuthState(): Promise<AuthState> {
-  console.log('restoreSession:start');
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
   try {
     const timeoutFallback = new Promise<AuthState>((resolve) => {
       timeoutId = setTimeout(() => {
-        console.log('restoreSession:error', 'timeout');
-        resolve({ isAuthenticated: false, user: null });
+        resolve({ isAuthenticated: false, token: null, user: null });
       }, 1800);
     });
 
@@ -153,7 +151,6 @@ export async function getAuthState(): Promise<AuthState> {
       clearTimeout(timeoutId);
     }
 
-    console.log('restoreSession:done');
   }
 }
 
@@ -164,7 +161,7 @@ export async function login(input: LoginInput): Promise<AuthState> {
   });
   const user = await hydrateUserFromSelf(payload, input.email.trim().toLowerCase());
 
-  return setAuthState({ isAuthenticated: true, user });
+  return setAuthState({ isAuthenticated: true, token: payload.token ?? null, user });
 }
 
 export async function register(input: RegisterInput): Promise<AuthState> {
@@ -175,7 +172,7 @@ export async function register(input: RegisterInput): Promise<AuthState> {
   });
   const user = await hydrateUserFromSelf(payload, input.email.trim().toLowerCase());
 
-  return setAuthState({ isAuthenticated: true, user });
+  return setAuthState({ isAuthenticated: true, token: payload.token ?? null, user });
 }
 
 export async function logout(): Promise<AuthState> {
@@ -185,5 +182,5 @@ export async function logout(): Promise<AuthState> {
     // Logout must clear the local session even if the cookie-backed API is unreachable.
   }
 
-  return setAuthState({ isAuthenticated: false, user: null });
+  return setAuthState({ isAuthenticated: false, token: null, user: null });
 }

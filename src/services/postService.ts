@@ -18,9 +18,13 @@ export type CreatePostInput = {
 };
 
 function parseMeasurement(value: string, fallback?: number) {
-  const normalized = value.replace(',', '.');
+  const normalized = value.replace(',', '.').replace(/[^\d.]/g, '');
   const parsed = Number.parseFloat(normalized);
   return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function integerMeasurement(value: number) {
+  return Math.max(1, Math.round(value));
 }
 
 function dateFromLabel(label: string) {
@@ -61,12 +65,15 @@ export async function createPost(input: CreatePostInput): Promise<CatchPost> {
     throw new Error('Ajoutez une photo pour publier votre prise.');
   }
 
-  const weight = parseMeasurement(input.weightLabel);
-  const length = parseMeasurement(input.lengthLabel ?? '');
+  const parsedWeight = parseMeasurement(input.weightLabel);
+  const parsedLength = parseMeasurement(input.lengthLabel ?? '');
 
-  if (weight === undefined || length === undefined) {
+  if (parsedWeight === undefined || parsedLength === undefined) {
     throw new Error('Renseignez un poids et une longueur valides.');
   }
+
+  const weight = integerMeasurement(parsedWeight);
+  const length = integerMeasurement(parsedLength);
 
   const body = new FormData();
   body.append('date', dateFromLabel(input.dateLabel).toISOString());

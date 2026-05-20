@@ -10,6 +10,7 @@ import { Badge } from '../components/ui/Badge';
 import { Card } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
 import { IconButton } from '../components/ui/IconButton';
+import { RemoteImage } from '../components/ui/RemoteImage';
 import { usePosts } from '../hooks/usePosts';
 import { RootStackParamList } from '../navigation/types';
 import { colors, opacity, radius, spacing, typography } from '../theme/theme';
@@ -41,7 +42,7 @@ function PostCard({
     <Card accessibilityLabel={`Ouvrir la publication de ${post.author.name}`} elevated onPress={onOpen} style={styles.postCard}>
       <View style={styles.postHeader}>
         <Pressable accessibilityLabel={`Ouvrir le profil de ${post.author.name}`} accessibilityRole="button" onPress={onOpenUser}>
-          <Avatar initials={post.author.initials} label={post.author.name} size="md" />
+          <Avatar initials={post.author.initials} label={post.author.name} size="md" source={post.author.profilePic ? { uri: post.author.profilePic } : undefined} />
         </Pressable>
         <View style={styles.fill}>
           <Text style={styles.author}>{post.author.name}</Text>
@@ -63,9 +64,9 @@ function PostCard({
       <Text style={styles.contentText}>{post.content}</Text>
 
       {post.hasPhoto ? (
-        <View style={styles.photoPlaceholder}>
+        <RemoteImage style={styles.photoPlaceholder} uri={post.imageUrl}>
           <Ionicons name="fish-outline" size={56} color={colors.secondary} />
-        </View>
+        </RemoteImage>
       ) : null}
 
       <View style={styles.actionBar}>
@@ -95,7 +96,7 @@ export function CommunityScreen() {
   const { data: posts, loading } = usePosts();
 
   const showUnavailable = () => {
-    Alert.alert('Fonction a venir', 'Cette action sera disponible prochainement.');
+    Alert.alert('Fonction bientot disponible', 'Cette action sera ajoutee apres la demo.');
   };
 
   const visiblePosts = posts.filter((post) => {
@@ -121,7 +122,7 @@ export function CommunityScreen() {
             variant="primary"
           />
         }
-        subtitle="+127 nouvelles prises aujourd'hui"
+        subtitle={`${posts.length} prises partagees`}
         title="Communaute"
       />
 

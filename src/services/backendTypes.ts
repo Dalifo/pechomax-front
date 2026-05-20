@@ -32,6 +32,7 @@ export type BackendAuthPayload = {
     score?: number | null;
   };
   role?: 'Admin' | 'User';
+  token?: string;
 };
 
 export type BackendAuthSelf = BackendAuthPayload['sub'];
@@ -115,4 +116,3 @@ export type BackendConversation = {
   category?: BackendCategory | null;
   messages?: BackendMessage[];
 };
-

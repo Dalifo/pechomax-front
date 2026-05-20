@@ -181,7 +181,15 @@ export function CreatePostScreen({ navigation }: Props) {
           <EmptyState description="Chargement des especes et des spots." icon="fish-outline" title="Chargement" />
         ) : null}
 
-        {!loadingOptions ? (
+        {!loadingOptions && (species.length === 0 || spots.length === 0) ? (
+          <EmptyState
+            description="Les especes et les spots doivent etre disponibles avant de publier."
+            icon="alert-circle-outline"
+            title="Publication indisponible"
+          />
+        ) : null}
+
+        {!loadingOptions && species.length > 0 && spots.length > 0 ? (
           <Card style={styles.formCard}>
             <Select
               iconLeft="fish-outline"

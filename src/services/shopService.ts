@@ -1,7 +1,5 @@
 import { ServiceResult, Shop } from '../types/domain';
 
-// TODO(backend): no shop directory endpoint exists in pechomax-backend/apps/server.
-// Deprecated fallback kept for the secondary shop screen.
 const delay = 160;
 
 const fallbackShops: Shop[] = [

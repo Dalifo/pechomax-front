@@ -110,6 +110,7 @@ export function mapUserSummary(user?: BackendUser | null, fallbackId = ''): User
     level: user?.level?.value ?? undefined,
     location: compactLocation(user),
     name,
+    profilePic: user?.profile_pic ?? undefined,
   };
 }
 
@@ -135,6 +136,8 @@ export function mapAuthUserFromUser(user: BackendUser): AuthUser {
 }
 
 export function mapCatchPost(item: BackendCatch): CatchPost {
+  const imageUrl = item.pictures.find((picture) => /^https?:\/\//i.test(picture));
+
   return {
     author: mapUserSummary(item.user, item.user_id ?? ''),
     bookmarked: false,
@@ -142,8 +145,9 @@ export function mapCatchPost(item: BackendCatch): CatchPost {
     content: item.description || `Nouvelle prise: ${item.species?.name ?? 'Poisson'}`,
     createdAtLabel: relativeDateLabel(item.created_at ?? item.date),
     fishName: item.species?.name ?? 'Poisson',
-    hasPhoto: item.pictures.length > 0,
+    hasPhoto: Boolean(imageUrl),
     id: item.id,
+    imageUrl,
     lengthLabel: `${item.length} cm`,
     liked: false,
     likes: Math.max(0, Math.round((item.point_value ?? 0) / 100)),
@@ -259,6 +263,7 @@ export function mapLogbookCatch(item: BackendCatch): LogbookCatch {
   return {
     date: item.date,
     id: item.id,
+    imageUrl: item.pictures.find((picture) => /^https?:\/\//i.test(picture)),
     length: item.length,
     location: item.location?.name ?? 'Spot PechoMax',
     species: item.species?.name ?? 'Poisson',
@@ -288,6 +293,7 @@ export function mapUserProfile(user: BackendUser): UserProfile {
     ],
     displayName: user.username,
     headline: [user.city, user.region].filter(Boolean).join(', ') || 'Pecheur PechoMax',
+    profilePic: user.profile_pic ?? undefined,
     infoItems: ['A propos', 'Aide et support', "Conditions d'utilisation"],
     level,
     menuItems: [

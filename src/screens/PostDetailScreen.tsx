@@ -10,6 +10,7 @@ import { Card } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
 import { IconButton } from '../components/ui/IconButton';
 import { Input } from '../components/ui/Input';
+import { RemoteImage } from '../components/ui/RemoteImage';
 import { usePostDetail } from '../hooks/usePostDetail';
 import { RootStackParamList } from '../navigation/types';
 import { colors, opacity, radius, spacing, typography } from '../theme/theme';
@@ -21,7 +22,7 @@ export function PostDetailScreen({ navigation, route }: Props) {
   const [comment, setComment] = useState('');
 
   const showUnavailable = () => {
-    Alert.alert('Fonction a venir', 'Cette action sera disponible prochainement.');
+    Alert.alert('Fonction bientot disponible', 'Cette action sera ajoutee apres la demo.');
   };
 
   if (loading || !post) {
@@ -43,9 +44,9 @@ export function PostDetailScreen({ navigation, route }: Props) {
       />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.screenFill}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <View style={styles.photoBlock}>
+          <RemoteImage style={styles.photoBlock} uri={post.imageUrl}>
             <Ionicons name="fish-outline" size={72} color={colors.secondary} />
-          </View>
+          </RemoteImage>
 
           <View style={styles.actionBar}>
             <View style={styles.actionGroup}>
@@ -74,7 +75,7 @@ export function PostDetailScreen({ navigation, route }: Props) {
               onPress={() => navigation.navigate('UserProfile', { userId: post.author.id })}
               style={styles.authorRow}
             >
-              <Avatar initials={post.author.initials} label={post.author.name} size="md" />
+              <Avatar initials={post.author.initials} label={post.author.name} size="md" source={post.author.profilePic ? { uri: post.author.profilePic } : undefined} />
           <View style={styles.textFill}>
                 <Text style={styles.author}>{post.author.name}</Text>
                 <Text style={styles.muted}>Niveau {post.author.level ?? 1} - {post.detailDateLabel}</Text>

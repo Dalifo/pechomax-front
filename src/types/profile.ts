@@ -38,6 +38,7 @@ export type ProfileMenuItem = {
 export type UserProfile = {
   displayName: string;
   headline: string;
+  profilePic?: string;
   level: number;
   xp: {
     current: number;

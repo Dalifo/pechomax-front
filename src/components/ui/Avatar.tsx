@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Image, ImageSourcePropType, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { colors, radius, spacing, typography } from '../../theme/theme';
 
@@ -20,6 +21,18 @@ const sizes: Record<AvatarSize, { box: number; text: number }> = {
 
 export function Avatar({ initials = 'PM', label, size = 'md', source, style }: AvatarProps) {
   const metrics = sizes[size];
+  const [imageFailed, setImageFailed] = useState(false);
+  const displayInitials = initials
+    .split(/[\s._-]+/)
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [source]);
 
   return (
     <View
@@ -27,10 +40,10 @@ export function Avatar({ initials = 'PM', label, size = 'md', source, style }: A
       accessibilityRole={label ? 'image' : undefined}
       style={[styles.base, { height: metrics.box, width: metrics.box }, style]}
     >
-      {source ? (
-        <Image source={source} style={styles.image} />
+      {source && !imageFailed ? (
+        <Image onError={() => setImageFailed(true)} source={source} style={styles.image} />
       ) : (
-        <Text style={[styles.initials, { fontSize: metrics.text }]}>{initials.slice(0, 2).toUpperCase()}</Text>
+        <Text style={[styles.initials, { fontSize: metrics.text }]}>{displayInitials || 'PM'}</Text>
       )}
     </View>
   );
