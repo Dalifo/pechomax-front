@@ -57,7 +57,13 @@ export type FishingSpot = {
   waterType: WaterType;
   fish: string[];
   rating: number;
+  commentsCount?: number;
   distanceLabel?: string;
+  favorite?: boolean;
+  favoritesCount?: number;
+  imageUrl?: string;
+  myRating?: number | null;
+  ratingsCount?: number;
   activeUsers?: number;
   photos?: number;
   conditions?: string;
@@ -86,9 +92,10 @@ export type FishingSpot = {
 };
 
 export type SpotComment = {
-  user: string;
+  id: EntityId;
+  author: UserSummary;
   text: string;
-  date: string;
+  timeLabel: string;
 };
 
 export type FishSpecies = {

@@ -52,11 +52,35 @@ export type BackendLocation = {
   latitude: string;
   name: string;
   description?: string | null;
+  pictures?: string[] | null;
+  water_type?: 'freshwater' | 'sea' | null;
   user_id?: string | null;
   created_at?: string;
   updated_at?: string;
   user?: BackendUser | null;
   speciesLocations?: BackendSpeciesLocation[];
+  averageRating?: number | string | null;
+  commentsCount?: number | string | null;
+  favoritesCount?: number | string | null;
+  isFavoriteByMe?: boolean | null;
+  myRating?: number | string | null;
+  ratingsCount?: number | string | null;
+};
+
+export type BackendLocationComment = {
+  id: string;
+  location_id: string;
+  user_id: string;
+  content: string;
+  created_at?: string;
+  updated_at?: string;
+  user?: BackendUser | null;
+};
+
+export type BackendLocationRatingSummary = {
+  averageRating: number | string | null;
+  myRating?: number | string | null;
+  ratingsCount: number | string | null;
 };
 
 export type BackendSpeciesLocation = {

@@ -9,6 +9,7 @@ import {
   LogbookCatch,
   Message,
   PostComment,
+  SpotComment,
   UserSummary,
   WaterType,
 } from '../types/domain';
@@ -20,6 +21,7 @@ import {
   BackendCatchComment,
   BackendConversation,
   BackendLocation,
+  BackendLocationComment,
   BackendMessage,
   BackendSpecies,
   BackendUser,
@@ -185,6 +187,14 @@ export function mapPostComment(item: BackendCatchComment): PostComment {
 }
 
 function waterTypeFromLocation(location: BackendLocation): WaterType {
+  if (location.water_type === 'freshwater') {
+    return 'freshwater';
+  }
+
+  if (location.water_type === 'sea') {
+    return 'saltwater';
+  }
+
   const searchable = `${location.name} ${location.description ?? ''}`.toLowerCase();
   return /mer|port|ocean|oc[eé]an|plage|c[oô]te/.test(searchable) ? 'saltwater' : 'freshwater';
 }
@@ -219,20 +229,37 @@ export function mapFishingSpot(item: BackendLocation): FishingSpot {
   const longitude = Number.parseFloat(item.longitude);
   const latitude = Number.parseFloat(item.latitude);
   const hasCoordinates = isValidCoordinate(latitude, longitude);
+  const pictures = Array.isArray(item.pictures) ? item.pictures : [];
+  const imageUrl = pictures.find((picture) => /^https?:\/\//i.test(picture));
 
   return {
     activeUsers: undefined,
     comments: [],
+    commentsCount: numberFromBackend(item.commentsCount),
     conditions: item.description ?? undefined,
     coordinates: hasCoordinates ? { latitude, longitude } : undefined,
+    favorite: Boolean(item.isFavoriteByMe),
+    favoritesCount: numberFromBackend(item.favoritesCount),
     fish,
     id: item.id,
+    imageUrl,
     location: item.user?.region || item.user?.city || `${item.latitude}, ${item.longitude}`,
     mapPosition: mapPosition(item),
+    myRating: item.myRating == null ? null : numberFromBackend(item.myRating),
     name: item.name,
-    photos: undefined,
-    rating: 4,
+    photos: pictures.length,
+    rating: Number(item.averageRating ?? 0),
+    ratingsCount: numberFromBackend(item.ratingsCount),
     waterType: waterTypeFromLocation(item),
+  };
+}
+
+export function mapSpotComment(item: BackendLocationComment): SpotComment {
+  return {
+    author: mapUserSummary(item.user, item.user_id),
+    id: item.id,
+    text: item.content,
+    timeLabel: relativeDateLabel(item.created_at),
   };
 }
 

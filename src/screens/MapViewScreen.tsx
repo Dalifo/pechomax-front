@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import RNMapView, { MapPressEvent, Marker, Region } from 'react-native-maps';
 import { AppHeader } from '../components/layout/AppHeader';
 import { Screen } from '../components/layout/Screen';
@@ -15,18 +16,18 @@ import { IconButton } from '../components/ui/IconButton';
 import { Input } from '../components/ui/Input';
 import { useSpots } from '../hooks/useSpots';
 import { RootStackParamList } from '../navigation/types';
-import { createSpot } from '../services/spotService';
+import { getFishSpecies } from '../services/fishService';
+import { createSpot, favoriteSpot, unfavoriteSpot } from '../services/spotService';
 import { colors, opacity, radius, spacing, typography } from '../theme/theme';
-import { EntityId, FishingSpot, WaterType } from '../types/domain';
+import { EntityId, FishSpecies, FishingSpot, WaterType } from '../types/domain';
 
 type RootNavigation = NativeStackNavigationProp<RootStackParamList>;
-type FilterId = 'all' | WaterType | 'favorites';
+type FilterId = 'all' | WaterType;
 
 const filters: { id: FilterId; label: string }[] = [
   { id: 'all', label: 'Tous' },
   { id: 'freshwater', label: 'Eau douce' },
   { id: 'saltwater', label: 'Mer' },
-  { id: 'favorites', label: 'Favoris' },
 ];
 
 const FRANCE_REGION: Region = {
@@ -39,6 +40,15 @@ const FRANCE_REGION: Region = {
 type SpotDraft = {
   description: string;
   name: string;
+  photo: SelectedPhoto | null;
+  speciesIds: EntityId[];
+  waterType: WaterType;
+};
+
+type SelectedPhoto = {
+  fileName?: string;
+  mimeType?: string;
+  uri: string;
 };
 
 type SpotCoordinate = {
@@ -49,6 +59,9 @@ type SpotCoordinate = {
 const emptySpotDraft: SpotDraft = {
   description: '',
   name: '',
+  photo: null,
+  speciesIds: [],
+  waterType: 'freshwater',
 };
 
 function getRegion(spots: FishingSpot[]): Region {
@@ -84,19 +97,8 @@ function validCoordinate(coordinate: SpotCoordinate | null): coordinate is SpotC
   );
 }
 
-function NearbySpotCard({ onPress, selected, spot }: { onPress: () => void; selected: boolean; spot: FishingSpot }) {
-  return (
-    <Card
-      accessibilityLabel={`Selectionner ${spot.name}`}
-      onPress={onPress}
-      padding="md"
-      style={[styles.nearbyCard, selected && styles.nearbyCardSelected]}
-    >
-      <Ionicons name="location-outline" size={22} color={colors.primary} />
-      <Text numberOfLines={2} style={styles.nearbyTitle}>{spot.name}</Text>
-      <Text style={styles.muted}>{spot.location}</Text>
-    </Card>
-  );
+function markerColor(spot: FishingSpot) {
+  return spot.waterType === 'saltwater' ? colors.secondary : colors.primary;
 }
 
 export function MapViewScreen() {
@@ -107,22 +109,45 @@ export function MapViewScreen() {
   const [selectedSpotId, setSelectedSpotId] = useState<EntityId | null>(null);
   const [currentRegion, setCurrentRegion] = useState<Region>(FRANCE_REGION);
   const [placementMode, setPlacementMode] = useState(false);
+  const [spotFormVisible, setSpotFormVisible] = useState(false);
   const [draftCoordinate, setDraftCoordinate] = useState<SpotCoordinate | null>(null);
   const [spotDraft, setSpotDraft] = useState<SpotDraft>(emptySpotDraft);
   const [creatingSpot, setCreatingSpot] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
+  const [species, setSpecies] = useState<FishSpecies[]>([]);
   const [spotError, setSpotError] = useState<string | null>(null);
   const [locationMessage, setLocationMessage] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<SpotCoordinate | null>(null);
   const { error, filteredSpots, loading, refresh } = useSpots(filter, query);
   const mappableSpots = useMemo(() => filteredSpots.filter((spot) => spot.coordinates), [filteredSpots]);
   const mapRegion = useMemo(() => getRegion(mappableSpots.length > 0 ? mappableSpots : filteredSpots), [filteredSpots, mappableSpots]);
-  const selectedSpot = filteredSpots.find((spot) => spot.id === selectedSpotId) ?? filteredSpots[0] ?? null;
+  const selectedSpot = filteredSpots.find((spot) => spot.id === selectedSpotId) ?? null;
 
   useEffect(() => {
     if (!userLocation && filteredSpots.length > 0) {
       mapRef.current?.animateToRegion(mapRegion, 350);
     }
   }, [filteredSpots.length, mapRegion, userLocation]);
+
+  useEffect(() => {
+    let active = true;
+
+    getFishSpecies()
+      .then((nextSpecies) => {
+        if (active) {
+          setSpecies(nextSpecies);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setSpecies([]);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const recenter = () => {
     mapRef.current?.animateToRegion(
@@ -164,26 +189,103 @@ export function MapViewScreen() {
 
   const openCreateSpot = () => {
     setPlacementMode(true);
+    setSpotFormVisible(false);
     setSpotDraft(emptySpotDraft);
     setDraftCoordinate(null);
     setSpotError(null);
+    setSelectedSpotId(null);
   };
 
   const cancelPlacement = () => {
     setPlacementMode(false);
+    setSpotFormVisible(false);
     setDraftCoordinate(null);
     setSpotDraft(emptySpotDraft);
     setSpotError(null);
   };
 
+  const confirmPlacement = () => {
+    if (!validCoordinate(draftCoordinate)) {
+      setSpotError('Touchez la carte pour placer le repere.');
+      return;
+    }
+
+    setSpotError(null);
+    setSpotFormVisible(true);
+  };
+
   const onMapPress = (event: MapPressEvent) => {
     if (!placementMode) {
+      setSelectedSpotId(null);
       return;
     }
 
     const { latitude, longitude } = event.nativeEvent.coordinate;
     setDraftCoordinate({ latitude, longitude });
     setSpotError(null);
+  };
+
+  const pickSpotPhoto = async () => {
+    setSpotError(null);
+
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      setSpotError('Autorisez l acces aux photos pour ajouter une image.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      mediaTypes: ['images'],
+      quality: 0.85,
+    });
+
+    if (result.canceled || result.assets.length === 0) {
+      return;
+    }
+
+    const asset = result.assets[0];
+    setSpotDraft((current) => ({
+      ...current,
+      photo: {
+        fileName: asset.fileName ?? 'spot.jpg',
+        mimeType: asset.mimeType ?? 'image/jpeg',
+        uri: asset.uri,
+      },
+    }));
+  };
+
+  const toggleDraftSpecies = (speciesId: EntityId) => {
+    setSpotDraft((current) => ({
+      ...current,
+      speciesIds: current.speciesIds.includes(speciesId)
+        ? current.speciesIds.filter((id) => id !== speciesId)
+        : [...current.speciesIds, speciesId],
+    }));
+  };
+
+  const toggleFavorite = async () => {
+    if (!selectedSpot || favoriteLoading) {
+      return;
+    }
+
+    setFavoriteLoading(true);
+    setSpotError(null);
+
+    try {
+      if (selectedSpot.favorite) {
+        await unfavoriteSpot(selectedSpot.id);
+      } else {
+        await favoriteSpot(selectedSpot.id);
+      }
+
+      await refresh();
+    } catch {
+      setSpotError('Impossible de modifier ce favori pour le moment.');
+    } finally {
+      setFavoriteLoading(false);
+    }
   };
 
   const submitSpot = async () => {
@@ -203,10 +305,16 @@ export function MapViewScreen() {
         latitude: coordinate.latitude,
         longitude: coordinate.longitude,
         name: spotDraft.name,
+        photoName: spotDraft.photo?.fileName,
+        photoType: spotDraft.photo?.mimeType,
+        photoUri: spotDraft.photo?.uri,
+        speciesIds: spotDraft.speciesIds,
+        waterType: spotDraft.waterType,
       });
       await refresh();
       setSelectedSpotId(spot.id);
       setPlacementMode(false);
+      setSpotFormVisible(false);
       setDraftCoordinate(null);
       setSpotDraft(emptySpotDraft);
       if (spot.coordinates) {
@@ -226,6 +334,7 @@ export function MapViewScreen() {
         initialRegion={mapRegion}
         onPress={onMapPress}
         onRegionChangeComplete={setCurrentRegion}
+        showsMyLocationButton={false}
         showsUserLocation={Boolean(userLocation)}
         style={styles.map}
       >
@@ -233,8 +342,11 @@ export function MapViewScreen() {
           <Marker
             coordinate={spot.coordinates!}
             key={spot.id}
-            onPress={() => selectSpot(spot)}
-            pinColor={spot.id === selectedSpot?.id ? colors.earth : colors.primary}
+            onPress={(event) => {
+              event.stopPropagation();
+              selectSpot(spot);
+            }}
+            pinColor={markerColor(spot)}
             title={spot.name}
           />
         ))}
@@ -291,7 +403,7 @@ export function MapViewScreen() {
       </View>
 
       <View pointerEvents="box-none" style={styles.bottomOverlay}>
-        {placementMode ? (
+        {placementMode && !spotFormVisible ? (
           <Card elevated style={styles.placementCard}>
             <View style={styles.panelHeader}>
               <Text style={styles.panelTitle}>Placer un nouveau spot</Text>
@@ -300,25 +412,102 @@ export function MapViewScreen() {
               </Pressable>
             </View>
             <Text style={styles.previewText}>
-              {draftCoordinate ? 'Deplacez le repere si besoin, puis validez le spot.' : 'Touchez la carte pour placer le repere.'}
+              {draftCoordinate ? 'Deplacez le repere ou touchez une autre zone.' : 'Touchez la carte pour placer le repere.'}
             </Text>
-            <Input label="Nom du spot" onChangeText={(name) => setSpotDraft((current) => ({ ...current, name }))} value={spotDraft.name} />
-            <Input
-              inputStyle={styles.textArea}
-              label="Description (optionnelle)"
-              multiline
-              onChangeText={(description) => setSpotDraft((current) => ({ ...current, description }))}
-              textAlignVertical="top"
-              value={spotDraft.description}
-            />
             {spotError ? <Text style={styles.errorText}>{spotError}</Text> : null}
             <View style={styles.placementActions}>
               <Button onPress={cancelPlacement} title="Annuler" variant="ghost" />
-              <Button disabled={!draftCoordinate || !spotDraft.name.trim()} loading={creatingSpot} onPress={submitSpot} title="Creer le spot" />
+              <Button disabled={!draftCoordinate} onPress={confirmPlacement} title="Valider l'emplacement" />
             </View>
+          </Card>
+        ) : placementMode ? (
+          <Card elevated style={styles.placementCard}>
+            <View style={styles.panelHeader}>
+              <Text style={styles.panelTitle}>Nouveau spot</Text>
+              <Pressable accessibilityRole="button" onPress={cancelPlacement} style={styles.closeButton}>
+                <Ionicons name="close" size={22} color={colors.text} />
+              </Pressable>
+            </View>
+            <ScrollView
+              contentContainerStyle={styles.spotFormScrollContent}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+              style={styles.spotFormScroll}
+            >
+              <Input label="Nom du spot" onChangeText={(name) => setSpotDraft((current) => ({ ...current, name }))} value={spotDraft.name} />
+              <Pressable
+                accessibilityRole="button"
+                onPress={pickSpotPhoto}
+                style={({ pressed }) => [styles.photoPick, pressed && styles.pressed]}
+              >
+                {spotDraft.photo ? (
+                  <Image source={{ uri: spotDraft.photo.uri }} style={styles.photoPreview} />
+                ) : (
+                  <>
+                    <Ionicons name="camera-outline" size={22} color={colors.textMuted} />
+                    <Text style={styles.photoPickText}>Ajouter une photo</Text>
+                  </>
+                )}
+              </Pressable>
+              <View>
+                <Text style={styles.inputLabel}>Type d'eau</Text>
+                <View style={styles.typeRow}>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => setSpotDraft((current) => ({ ...current, waterType: 'freshwater' }))}
+                    style={[styles.typeChip, spotDraft.waterType === 'freshwater' && styles.typeChipFreshActive]}
+                  >
+                    <Text style={[styles.typeText, spotDraft.waterType === 'freshwater' && styles.typeTextActive]}>Eau douce</Text>
+                  </Pressable>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => setSpotDraft((current) => ({ ...current, waterType: 'saltwater' }))}
+                    style={[styles.typeChip, spotDraft.waterType === 'saltwater' && styles.typeChipSeaActive]}
+                  >
+                    <Text style={[styles.typeText, spotDraft.waterType === 'saltwater' && styles.typeTextActive]}>Mer</Text>
+                  </Pressable>
+                </View>
+              </View>
+              <Input
+                inputStyle={styles.textArea}
+                label="Description (optionnelle)"
+                multiline
+                onChangeText={(description) => setSpotDraft((current) => ({ ...current, description }))}
+                textAlignVertical="top"
+                value={spotDraft.description}
+              />
+              {species.length > 0 ? (
+                <View>
+                  <Text style={styles.inputLabel}>Poissons presents</Text>
+                  <View style={styles.speciesWrap}>
+                    {species.map((item) => {
+                      const active = spotDraft.speciesIds.includes(item.id);
+                      return (
+                        <Pressable
+                          accessibilityRole="button"
+                          key={item.id}
+                          onPress={() => toggleDraftSpecies(item.id)}
+                          style={[styles.speciesChip, active && styles.speciesChipActive]}
+                        >
+                          <Text style={[styles.speciesText, active && styles.speciesTextActive]}>{item.name}</Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </View>
+              ) : null}
+              {spotError ? <Text style={styles.errorText}>{spotError}</Text> : null}
+              <View style={styles.placementActions}>
+                <Button onPress={cancelPlacement} title="Annuler" variant="ghost" />
+                <View style={styles.submitWrap}>
+                  <Button disabled={!draftCoordinate || !spotDraft.name.trim()} loading={creatingSpot} onPress={submitSpot} title="Creer le spot" />
+                </View>
+              </View>
+            </ScrollView>
           </Card>
         ) : selectedSpot ? (
           <Card elevated style={styles.previewCard}>
+            {selectedSpot.imageUrl ? <Image source={{ uri: selectedSpot.imageUrl }} style={styles.previewImage} /> : null}
             <View style={styles.previewHeader}>
               <View style={styles.fill}>
                 <Text style={styles.previewTitle}>{selectedSpot.name}</Text>
@@ -326,7 +515,20 @@ export function MapViewScreen() {
               </View>
               <Badge label={selectedSpot.waterType === 'freshwater' ? 'Eau douce' : 'Mer'} tone="secondary" />
             </View>
-            <Text numberOfLines={2} style={styles.previewText}>{selectedSpot.conditions || 'Informations disponibles sur la fiche du spot.'}</Text>
+            <View style={styles.previewStats}>
+              <Text style={styles.metaStrong}>{selectedSpot.rating > 0 ? `${selectedSpot.rating.toFixed(1)} / 5` : 'Pas encore note'}</Text>
+              <Text style={styles.muted}>{selectedSpot.favoritesCount ?? 0} favoris</Text>
+            </View>
+            {selectedSpot.conditions ? <Text numberOfLines={2} style={styles.previewText}>{selectedSpot.conditions}</Text> : null}
+            {spotError ? <Text style={styles.errorText}>{spotError}</Text> : null}
+            <Button
+              iconLeft={selectedSpot.favorite ? 'heart' : 'heart-outline'}
+              loading={favoriteLoading}
+              onPress={toggleFavorite}
+              size="sm"
+              title={selectedSpot.favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+              variant="outline"
+            />
             <Button
               accessibilityLabel={`Ouvrir ${selectedSpot.name}`}
               onPress={() => navigation.navigate('SpotDetail', { spotId: selectedSpot.id })}
@@ -466,14 +668,117 @@ const styles = StyleSheet.create({
   placementCard: {
     gap: spacing.md,
   },
+  spotFormScroll: {
+    maxHeight: 420,
+  },
+  spotFormScrollContent: {
+    gap: spacing.lg,
+    paddingBottom: spacing.xxl,
+  },
   placementActions: {
     alignItems: 'center',
     flexDirection: 'row',
     gap: spacing.md,
     justifyContent: 'flex-end',
   },
+  inputLabel: {
+    color: colors.text,
+    fontFamily: typography.fontFamilyBold,
+    fontSize: 13,
+    fontWeight: typography.weights.bold,
+    marginBottom: spacing.sm,
+  },
+  typeRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  typeChip: {
+    backgroundColor: opacity.black06,
+    borderRadius: radius.md,
+    flex: 1,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  typeChipFreshActive: {
+    backgroundColor: colors.primary,
+  },
+  typeChipSeaActive: {
+    backgroundColor: colors.secondary,
+  },
+  typeText: {
+    color: colors.textMuted,
+    fontFamily: typography.fontFamilyBold,
+    fontSize: 13,
+    fontWeight: typography.weights.bold,
+    textAlign: 'center',
+  },
+  typeTextActive: {
+    color: colors.background,
+  },
+  photoPick: {
+    alignItems: 'center',
+    backgroundColor: opacity.black06,
+    borderColor: opacity.black08,
+    borderRadius: radius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    gap: spacing.sm,
+    minHeight: 52,
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  photoPickText: {
+    color: colors.textMuted,
+    fontFamily: typography.fontFamilyBold,
+    fontSize: 13,
+    fontWeight: typography.weights.bold,
+  },
+  photoPreview: {
+    height: 120,
+    width: '100%',
+  },
+  speciesRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  speciesWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  speciesChip: {
+    backgroundColor: opacity.black06,
+    borderRadius: radius.round,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  speciesChipActive: {
+    backgroundColor: colors.primary,
+  },
+  speciesText: {
+    color: colors.textMuted,
+    fontFamily: typography.fontFamilyBold,
+    fontSize: 12,
+    fontWeight: typography.weights.bold,
+  },
+  speciesTextActive: {
+    color: colors.background,
+  },
+  submitWrap: {
+    flexShrink: 0,
+  },
   previewHeader: {
     alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  previewImage: {
+    borderRadius: radius.md,
+    height: 120,
+    width: '100%',
+  },
+  previewStats: {
+    alignItems: 'center',
     flexDirection: 'row',
     gap: spacing.md,
   },

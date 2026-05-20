@@ -75,8 +75,8 @@ function SpotSuggestion({ onPress, spot }: { onPress: () => void; spot: FishingS
       <Text numberOfLines={2} style={styles.spotName}>{spot.name}</Text>
       <Text style={styles.muted}>{spot.distanceLabel}</Text>
       <View style={styles.spotFooter}>
-        <Text style={styles.actionText}>{spot.rating.toFixed(1)}</Text>
-        <Badge label={`${spot.activeUsers ?? 0} actifs`} tone="secondary" />
+        <Text style={styles.actionText}>{spot.rating > 0 ? spot.rating.toFixed(1) : spot.waterType === 'freshwater' ? 'Eau douce' : 'Mer'}</Text>
+        <Badge label={`${spot.favoritesCount ?? 0} favoris`} tone="secondary" />
       </View>
     </Card>
   );
