@@ -209,7 +209,6 @@ export function SpotDetailScreen({ navigation, route }: Props) {
           </Text>
         </Card>
 
-        <SectionTitle icon="chatbubble-outline" title={`Commentaires (${comments.length})`} />
         <Card style={styles.cardGap}>
           <Input
             inputStyle={styles.commentInput}
@@ -222,6 +221,8 @@ export function SpotDetailScreen({ navigation, route }: Props) {
           />
           <Button disabled={!commentText.trim()} loading={actionLoading} onPress={submitComment} title="Publier" />
         </Card>
+
+        <SectionTitle icon="chatbubble-outline" title={`Commentaires (${comments.length})`} />
 
         {commentsLoading ? <EmptyState description="Chargement des commentaires." title="Chargement" /> : null}
         {!commentsLoading && comments.length === 0 ? (

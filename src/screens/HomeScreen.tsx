@@ -375,11 +375,11 @@ export function HomeScreen() {
         <SectionTitle
           action={<Button onPress={() => navigation.navigate('MainTabs', { screen: 'Community' })} size="sm" title="Tout voir" variant="ghost" />}
           icon="fish-outline"
-          title="Prises recentes"
+          title="Prises récentes"
         />
 
         {postsLoading ? (
-          <EmptyState description="Chargement des prises recentes." icon="fish-outline" title="Chargement" />
+          <EmptyState description="Chargement des prises récentes." icon="fish-outline" title="Chargement" />
         ) : null}
 
         {!postsLoading && recentPosts.map((post) => (
@@ -397,7 +397,7 @@ export function HomeScreen() {
         <SectionTitle
           action={<Button onPress={() => navigation.navigate('MainTabs', { screen: 'Map' })} size="sm" title="Voir plus" variant="ghost" />}
           icon="navigate-outline"
-          title="Spots recommandes"
+          title="Spots recommandés"
         />
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.horizontalList}>
