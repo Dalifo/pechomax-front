@@ -40,6 +40,7 @@ export type UserProfile = {
   headline: string;
   profilePic?: string;
   level: number;
+  levelTitle?: string;
   xp: {
     current: number;
     nextLevel: number;

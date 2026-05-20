@@ -323,6 +323,7 @@ export function mapUserProfile(user: BackendUser): UserProfile {
   const catchCount = user.catches?.length ?? 0;
   const spotCount = user.locations?.length ?? 0;
   const level = user.level?.value ?? 1;
+  const levelTitle = user.level?.title ?? `Niveau ${level}`;
   const score = user.score ?? 0;
   const nextLevel = user.level?.end ?? Math.max(1000, score + 500);
 
@@ -342,6 +343,7 @@ export function mapUserProfile(user: BackendUser): UserProfile {
     profilePic: user.profile_pic ?? undefined,
     infoItems: ['A propos', 'Aide et support', "Conditions d'utilisation"],
     level,
+    levelTitle,
     menuItems: [
       { count: spotCount, icon: 'location-outline', id: 'spots', label: 'Mes spots favoris' },
       { count: catchCount, icon: 'fish-outline', id: 'catches', label: 'Historique des prises' },
