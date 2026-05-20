@@ -333,6 +333,7 @@ export function mapUserProfile(user: BackendUser): UserProfile {
       { color: colors.primary, icon: 'fish-outline', id: 'catches', label: 'Prises', value: String(catchCount) },
       { color: colors.secondary, icon: 'radio-button-on-outline', id: 'level', label: 'Niveau', value: String(level) },
     ],
+    // TEMP_STATIC_BADGES: frontend-only badge definitions until a backend badge system exists.
     badges: [
       { icon: 'fish-outline', id: 1, name: 'Premiere prise', rarity: 'common', unlocked: catchCount > 0 },
       { icon: 'map-outline', id: 2, name: 'Explorateur', rarity: 'common', unlocked: spotCount > 0 },
@@ -353,7 +354,7 @@ export function mapUserProfile(user: BackendUser): UserProfile {
     stats: [
       { icon: 'fish-outline', id: 'catches', label: 'Prises', value: String(catchCount) },
       { icon: 'location-outline', id: 'spots', label: 'Spots', value: String(spotCount) },
-      { icon: 'radio-button-on-outline', id: 'score', label: 'Score', value: String(score) },
+      { icon: 'trophy-outline', id: 'level', label: 'Niveau', value: levelTitle },
     ],
     xp: {
       current: score,

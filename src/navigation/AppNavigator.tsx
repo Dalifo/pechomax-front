@@ -29,6 +29,7 @@ import { ShopsScreen } from '../screens/ShopsScreen';
 import { SplashScreen } from '../screens/SplashScreen';
 import { SpotDetailScreen } from '../screens/SpotDetailScreen';
 import { ToolsScreen } from '../screens/ToolsScreen';
+import { TrophiesScreen } from '../screens/TrophiesScreen';
 import { UserGuideScreen } from '../screens/UserGuideScreen';
 import { UserProfileScreen } from '../screens/UserProfileScreen';
 import { WelcomeScreen } from '../screens/WelcomeScreen';
@@ -99,6 +100,7 @@ export function AppNavigator() {
         <Stack.Screen name="Tools" component={ToolsScreen} />
         <Stack.Screen name="Shops" component={ShopsScreen} />
         <Stack.Screen name="Logbook" component={LogbookScreen} />
+        <Stack.Screen name="Trophies" component={TrophiesScreen} />
         <Stack.Screen name="UserGuide" component={UserGuideScreen} />
         <Stack.Screen name="FAQ" component={FAQScreen} />
         <Stack.Screen name="Contact" component={ContactScreen} />

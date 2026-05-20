@@ -24,8 +24,10 @@ import { IconName } from '../types/profile';
 type RootNavigation = NativeStackNavigationProp<RootStackParamList>;
 
 function ProfileStatCard({ stat }: { stat: ProfileStat }) {
+  const tone = stat.id === 'catches' ? colors.primary : stat.id === 'spots' ? colors.secondary : colors.earth;
+
   return (
-    <View style={styles.statCard}>
+    <View style={[styles.statCard, { backgroundColor: tone }]}>
       <Ionicons name={stat.icon} size={20} color={colors.background} />
       <Text style={styles.statValue}>{stat.value}</Text>
       <Text style={styles.statLabel}>{stat.label}</Text>
@@ -190,22 +192,19 @@ export function ProfileScreen() {
 
         <SectionTitle title="Mon compte" />
         <View style={styles.listGap}>
-          {profile.menuItems.map((item) => (
-            <ListItem
-              badgeLabel={item.count ? String(item.count) : undefined}
-              icon={item.icon}
-              key={item.id}
-              onPress={item.route === 'Settings' ? () => navigation.navigate('Settings') : undefined}
-              title={item.label}
-            />
-          ))}
-        </View>
-
-        <SectionTitle title="Informations" />
-        <View style={styles.listGap}>
-          {profile.infoItems.map((item) => (
-            <ListItem chevron key={item} title={item} />
-          ))}
+          <ListItem
+            badgeLabel={profile.stats.find((stat) => stat.id === 'catches')?.value}
+            icon="fish-outline"
+            onPress={() => navigation.navigate('Logbook')}
+            title="Historique des prises"
+          />
+          <ListItem
+            badgeLabel={`${unlockedBadges}/${profile.badges.length}`}
+            badgeTone="secondary"
+            icon="trophy-outline"
+            onPress={() => navigation.navigate('Trophies')}
+            title="Trophees et badges"
+          />
         </View>
 
         <Button accessibilityLabel="Deconnexion" onPress={confirmLogout} title="Deconnexion" variant="earth" />
@@ -296,10 +295,9 @@ const styles = StyleSheet.create({
   },
   statCard: {
     alignItems: 'center',
-    backgroundColor: opacity.surface88,
-    borderColor: opacity.surface96,
+    borderColor: 'transparent',
     borderRadius: radius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 0,
     flex: 1,
     minHeight: 94,
     padding: spacing.md,

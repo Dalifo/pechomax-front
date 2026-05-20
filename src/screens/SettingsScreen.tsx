@@ -8,36 +8,8 @@ import { SectionTitle } from '../components/ui/SectionTitle';
 import { useAuth } from '../hooks/useAuth';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography } from '../theme/theme';
-import { SettingsSection } from '../types/domain';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
-
-const sections: SettingsSection[] = [
-  {
-    title: 'Compte',
-    items: [
-      { id: 'notifications', label: 'Notifications', value: 'Activees', icon: 'notifications-outline' },
-    ],
-  },
-  {
-    title: 'Bibliotheques',
-    items: [
-      { id: 'fish', label: 'Base de poissons', icon: 'fish-outline' },
-      { id: 'articles', label: 'Articles', icon: 'newspaper-outline' },
-      { id: 'tools', label: 'Outils', icon: 'construct-outline' },
-      { id: 'shops', label: 'Magasins', icon: 'storefront-outline' },
-      { id: 'logbook', label: 'Journal de bord', icon: 'book-outline' },
-    ],
-  },
-  {
-    title: 'Support',
-    items: [
-      { id: 'guide', label: 'Guide utilisateur', icon: 'book-outline' },
-      { id: 'faq', label: 'FAQ', icon: 'help-circle-outline' },
-      { id: 'contact', label: 'Contact', icon: 'mail-outline' },
-    ],
-  },
-];
 
 export function SettingsScreen({ navigation }: Props) {
   const { logout } = useAuth();
@@ -60,59 +32,27 @@ export function SettingsScreen({ navigation }: Props) {
     <Screen padded={false} scroll>
       <AppHeader onBack={navigation.goBack} showBack title="Parametres" />
       <View style={styles.content}>
-        {sections.map((section) => (
-          <View key={section.title} style={styles.section}>
-            <SectionTitle title={section.title} />
-            {section.items.map((item) => (
-              <ListItem
-                badgeLabel={item.value}
-                badgeTone="secondary"
-                icon={item.icon}
-                key={item.id}
-                onPress={() => {
-                  if (item.id === 'notifications') {
-                    navigation.navigate('Notifications');
-                    return;
-                  }
-                  if (item.id === 'guide') {
-                    navigation.navigate('UserGuide');
-                    return;
-                  }
-                  if (item.id === 'faq') {
-                    navigation.navigate('FAQ');
-                    return;
-                  }
-                  if (item.id === 'contact') {
-                    navigation.navigate('Contact');
-                    return;
-                  }
-                  if (item.id === 'fish') {
-                    navigation.navigate('FishDatabase');
-                    return;
-                  }
-                  if (item.id === 'articles') {
-                    navigation.navigate('Articles');
-                    return;
-                  }
-                  if (item.id === 'tools') {
-                    navigation.navigate('Tools');
-                    return;
-                  }
-                  if (item.id === 'shops') {
-                    navigation.navigate('Shops');
-                    return;
-                  }
-                  if (item.id === 'logbook') {
-                    navigation.navigate('Logbook');
-                    return;
-                  }
-                }}
-                title={item.label}
-              />
-            ))}
-          </View>
-        ))}
-        <Button iconLeft="log-out-outline" onPress={confirmLogout} title="Se deconnecter" variant="earth" />
+        <View style={styles.section}>
+          <SectionTitle title="Compte" />
+          <ListItem
+            icon="person-outline"
+            onPress={() => navigation.navigate('EditProfile')}
+            title="Modifier mon profil"
+          />
+        </View>
+
+        <View style={styles.section}>
+          <SectionTitle title="Aide" />
+          <ListItem icon="book-outline" onPress={() => navigation.navigate('UserGuide')} title="Guide utilisateur" />
+          <ListItem icon="help-circle-outline" onPress={() => navigation.navigate('FAQ')} title="FAQ" />
+          <ListItem icon="mail-outline" onPress={() => navigation.navigate('Contact')} title="Contact" />
+        </View>
+
+        <View style={styles.section}>
+          <SectionTitle title="Session" />
+          <Button iconLeft="log-out-outline" onPress={confirmLogout} title="Se deconnecter" variant="earth" />
+        </View>
+
         <Text style={styles.version}>Pechomax v1.0.0</Text>
       </View>
     </Screen>

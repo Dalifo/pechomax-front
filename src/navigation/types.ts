@@ -30,6 +30,7 @@ export type RootStackParamList = {
   Tools: undefined;
   Shops: undefined;
   Logbook: undefined;
+  Trophies: undefined;
   UserGuide: undefined;
   FAQ: undefined;
   Contact: undefined;
