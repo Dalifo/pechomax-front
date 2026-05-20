@@ -20,9 +20,14 @@ export type Achievement = {
 export type BadgeRarity = 'common' | 'rare' | 'epic' | 'legendary';
 
 export type Badge = {
+  category?: string;
+  condition?: string;
+  description?: string;
   id: number;
   name: string;
   icon: string;
+  progress?: number;
+  target?: number;
   unlocked: boolean;
   rarity: BadgeRarity;
 };
@@ -41,6 +46,7 @@ export type UserProfile = {
   profilePic?: string;
   level: number;
   levelTitle?: string;
+  rankTitle?: string;
   xp: {
     current: number;
     nextLevel: number;

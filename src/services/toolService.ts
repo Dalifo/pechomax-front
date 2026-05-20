@@ -24,7 +24,7 @@ const fallbackTools: FishingTool[] = [
   {
     id: 'season',
     title: 'Saisons',
-    description: 'Resume des especes presentes dans vos carnets.',
+    description: 'Résumé des espèces présentes dans vos carnets.',
     icon: 'calendar-outline',
     items: ['Truite: mars a septembre', 'Brochet: mai a janvier', "Carpe: toute l'annee"],
   },
@@ -33,7 +33,7 @@ const fallbackTools: FishingTool[] = [
     title: 'Check-list materiel',
     description: 'Base de preparation avant depart.',
     icon: 'checkbox-outline',
-    items: ['Cannes et moulinets', 'Leurres ou appats', 'Epuisette', 'Carte de peche'],
+    items: ['Cannes et moulinets', 'Leurres ou appâts', 'Épuisette', 'Carte de pêche'],
   },
 ];
 

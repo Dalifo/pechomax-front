@@ -125,7 +125,7 @@ export function CommunityScreen() {
       <AppHeader
         action={
           <IconButton
-            accessibilityLabel="Creer une publication"
+            accessibilityLabel="Créer une publication"
             icon="add"
             onPress={() => navigation.navigate('CreatePost')}
             variant="primary"
@@ -159,7 +159,7 @@ export function CommunityScreen() {
 
         {!isLoading && visiblePosts.length === 0 ? (
           <EmptyState
-            description={activeFilter === 'Mes publications' ? "Vous n'avez encore publie aucune prise." : 'Aucune publication pour le moment.'}
+            description={activeFilter === 'Mes publications' ? "Vous n'avez encore publié aucune prise." : 'Aucune publication pour le moment.'}
             icon="chatbubbles-outline"
             title="Rien a afficher"
           />

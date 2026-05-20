@@ -321,7 +321,7 @@ export function MapViewScreen() {
         mapRef.current?.animateToRegion({ ...spot.coordinates, latitudeDelta: 0.08, longitudeDelta: 0.08 }, 350);
       }
     } catch {
-      setSpotError('Impossible de creer ce spot. Verifiez la connexion et reessayez.');
+      setSpotError('Impossible de créer ce spot. Vérifiez la connexion et réessayez.');
     } finally {
       setCreatingSpot(false);
     }
@@ -500,7 +500,7 @@ export function MapViewScreen() {
               <View style={styles.placementActions}>
                 <Button onPress={cancelPlacement} title="Annuler" variant="ghost" />
                 <View style={styles.submitWrap}>
-                  <Button disabled={!draftCoordinate || !spotDraft.name.trim()} loading={creatingSpot} onPress={submitSpot} title="Creer le spot" />
+                  <Button disabled={!draftCoordinate || !spotDraft.name.trim()} loading={creatingSpot} onPress={submitSpot} title="Créer le spot" />
                 </View>
               </View>
             </ScrollView>
@@ -542,7 +542,7 @@ export function MapViewScreen() {
 
         {loading ? <EmptyState description="Chargement des spots." title="Chargement" /> : null}
         {!loading && error ? (
-          <EmptyState actionLabel="Reessayer" description="Impossible de charger les spots." icon="alert-circle-outline" onActionPress={refresh} title="Erreur" />
+          <EmptyState actionLabel="Réessayer" description="Impossible de charger les spots." icon="alert-circle-outline" onActionPress={refresh} title="Erreur" />
         ) : null}
       </View>
     </Screen>

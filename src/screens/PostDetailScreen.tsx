@@ -45,7 +45,7 @@ export function PostDetailScreen({ navigation, route }: Props) {
       await submitComment(content);
       setComment('');
     } catch {
-      Alert.alert('Commentaire non envoye', 'Verifiez votre connexion et reessayez.');
+      Alert.alert('Commentaire non envoyé', 'Vérifiez votre connexion et réessayez.');
     } finally {
       setCommenting(false);
     }

@@ -22,6 +22,18 @@ const filters: { id: FishFilter; label: string; icon: keyof typeof Ionicons.glyp
   { id: 'saltwater', label: 'Mer', icon: 'boat-outline' },
 ];
 
+function waterTypeLabel(type: WaterType) {
+  if (type === 'saltwater') {
+    return 'Mer';
+  }
+
+  if (type === 'mixed') {
+    return 'Mixte';
+  }
+
+  return 'Eau douce';
+}
+
 export function FishDatabaseScreen({ navigation }: Props) {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<FishFilter>('all');
@@ -29,7 +41,7 @@ export function FishDatabaseScreen({ navigation }: Props) {
 
   return (
     <Screen padded={false} scroll>
-      <AppHeader onBack={navigation.goBack} showBack subtitle={`${filteredFish.length} especes disponibles`} title="Base de poissons" />
+      <AppHeader onBack={navigation.goBack} showBack subtitle={`${filteredFish.length} espèces disponibles`} title="Base de poissons" />
       <View style={styles.content}>
         <Input iconLeft="search-outline" onChangeText={setQuery} placeholder="Rechercher un poisson..." value={query} />
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -51,9 +63,9 @@ export function FishDatabaseScreen({ navigation }: Props) {
           </View>
         </ScrollView>
 
-        {loading ? <EmptyState description="Chargement des especes." icon="fish-outline" title="Chargement" /> : null}
+        {loading ? <EmptyState description="Chargement des espèces." icon="fish-outline" title="Chargement" /> : null}
         {!loading && filteredFish.length === 0 ? (
-          <EmptyState description="Essayez une autre recherche." icon="search-outline" title="Aucun poisson trouve" />
+          <EmptyState description="Essayez une autre recherche." icon="search-outline" title="Aucun poisson trouvé" />
         ) : null}
         {!loading && filteredFish.map((fish) => (
           <FishCard fish={fish} key={fish.id} onPress={() => navigation.navigate('FishDetail', { fishId: fish.id })} />
@@ -73,8 +85,8 @@ function FishCard({ fish, onPress }: { fish: FishSpecies; onPress: () => void })
         <Text style={styles.title}>{fish.name}</Text>
         <Text style={styles.italic}>{fish.scientificName}</Text>
         <View style={styles.badgeRow}>
-          <Badge label={fish.type === 'freshwater' ? 'Eau douce' : 'Mer'} tone="secondary" />
-          <Badge label={fish.protectionStatus} tone="earth" />
+          <Badge label={waterTypeLabel(fish.type)} tone="secondary" />
+          {fish.difficulty ? <Badge label={fish.difficulty} tone="neutral" /> : null}
         </View>
       </View>
       <Ionicons name="chevron-forward" size={18} color={colors.textSoft} />

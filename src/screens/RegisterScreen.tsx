@@ -56,7 +56,7 @@ export function RegisterScreen({ navigation }: Props) {
           <BrandLogo color={colors.text} height={31} width={148} />
         </View>
         <Text style={styles.title}>Créer votre espace pêche.</Text>
-        <Text style={styles.subtitle}>Creez un compte PechoMax pour publier et suivre vos prises.</Text>
+        <Text style={styles.subtitle}>Créez un compte PechoMax pour publier et suivre vos prises.</Text>
       </View>
 
       <Card elevated padding="xl" style={styles.card}>

@@ -30,7 +30,7 @@ export function useFish(filter: FishFilter = 'all', query = '') {
   const filteredFish = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     return state.data.filter((fish) => {
-      const matchesFilter = filter === 'all' || fish.type === filter;
+      const matchesFilter = filter === 'all' || fish.type === filter || fish.type === 'mixed';
       const matchesQuery =
         !normalizedQuery ||
         fish.name.toLowerCase().includes(normalizedQuery) ||

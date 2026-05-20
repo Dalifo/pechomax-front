@@ -59,7 +59,7 @@ export function ConversationsListScreen() {
     <Screen padded={false} scroll>
       <AppHeader
         action={<Ionicons name="chatbubbles-outline" size={24} color={colors.primary} />}
-        subtitle="Conversations peche et sorties"
+        subtitle="Conversations pêche et sorties"
         title="Messages"
       />
 

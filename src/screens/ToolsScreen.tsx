@@ -21,14 +21,14 @@ export function ToolsScreen({ navigation }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>('conditions');
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({
     'Cannes et moulinets': true,
-    'Leurres ou appats': true,
-    Epuisette: false,
-    'Carte de peche': true,
+    'Leurres ou appâts': true,
+    Épuisette: false,
+    'Carte de pêche': true,
   });
 
   return (
     <Screen padded={false} scroll>
-      <AppHeader onBack={navigation.goBack} showBack subtitle="Preparation, conditions et aide locale" title="Outils" />
+      <AppHeader onBack={navigation.goBack} showBack subtitle="Préparation, conditions et aide locale" title="Outils" />
       <View style={styles.content}>
         <View style={styles.summaryGrid}>
           <SummaryCard icon="speedometer-outline" label="Pression" value="1015 hPa" />

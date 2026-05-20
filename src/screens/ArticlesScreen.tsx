@@ -17,7 +17,7 @@ import { Article } from '../types/domain';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Articles'>;
 
-const categories = ['Tous', 'Technique', 'Materiel', 'Spots', 'Reglementation'];
+const categories = ['Tous', 'Technique', 'Matériel', 'Spots', 'Réglementation'];
 
 export function ArticlesScreen({ navigation }: Props) {
   const [category, setCategory] = useState('Tous');
@@ -59,7 +59,7 @@ export function ArticlesScreen({ navigation }: Props) {
           <Text style={styles.bodyText}>{selectedArticle.excerpt}</Text>
           <Card style={styles.tipCard}>
             <Text style={styles.cardTitle}>Conseil PechoMax</Text>
-            <Text style={styles.bodyText}>Verifiez toujours les conditions locales, la reglementation et l acces au spot avant de partir.</Text>
+            <Text style={styles.bodyText}>Vérifiez toujours les conditions locales, la réglementation et l’accès au spot avant de partir.</Text>
           </Card>
           <Button iconLeft="share-outline" onPress={() => shareArticle(selectedArticle)} title="Partager cet article" />
         </View>

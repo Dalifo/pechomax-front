@@ -101,7 +101,7 @@ export function CreatePostScreen({ navigation }: Props) {
       setSelectedSpeciesId((current) => current ?? nextSpecies[0]?.id ?? null);
       setSelectedSpotId((current) => current ?? nextSpots[0]?.id ?? null);
     } catch {
-      setError('Impossible de charger les especes et les spots.');
+      setError('Impossible de charger les espèces et les spots.');
     } finally {
       setLoadingOptions(false);
     }
@@ -122,7 +122,7 @@ export function CreatePostScreen({ navigation }: Props) {
         setSelectedSpotId(nextSpots[0]?.id ?? null);
       } catch {
         if (active) {
-          setError('Impossible de charger les especes et les spots.');
+          setError('Impossible de charger les espèces et les spots.');
         }
       } finally {
         if (active) {
@@ -252,7 +252,7 @@ export function CreatePostScreen({ navigation }: Props) {
 
   const submit = async () => {
     if (!valid || !selectedSpecies || !selectedSpot || !photo || weightValue === null || lengthValue === null) {
-      setError('Completez les champs obligatoires avec des valeurs valides.');
+      setError('Complétez les champs obligatoires avec des valeurs valides.');
       return;
     }
 
@@ -272,7 +272,7 @@ export function CreatePostScreen({ navigation }: Props) {
       });
       navigation.replace('PostDetail', { postId: createdPost.id });
     } catch {
-      setError('Impossible de publier cette prise. Verifiez la photo, la connexion et reessayez.');
+      setError('Impossible de publier cette prise. Vérifiez la photo, la connexion et réessayez.');
     }
   };
 
@@ -307,7 +307,7 @@ export function CreatePostScreen({ navigation }: Props) {
       setSpotModalVisible(false);
       setSpotModalError(null);
     } catch {
-      setSpotModalError('Impossible de creer ce spot. Verifiez la connexion et reessayez.');
+      setSpotModalError('Impossible de créer ce spot. Vérifiez la connexion et réessayez.');
     } finally {
       setCreatingSpot(false);
     }
@@ -348,13 +348,13 @@ export function CreatePostScreen({ navigation }: Props) {
         ) : null}
 
         {loadingOptions ? (
-          <EmptyState description="Chargement des especes et des spots." icon="fish-outline" title="Chargement" />
+          <EmptyState description="Chargement des espèces et des spots." icon="fish-outline" title="Chargement" />
         ) : null}
 
         {!loadingOptions && (species.length === 0 || spots.length === 0) ? (
           <EmptyState
-            actionLabel="Reessayer"
-            description="Les especes et les spots doivent etre disponibles avant de publier."
+            actionLabel="Réessayer"
+            description="Les espèces et les spots doivent être disponibles avant de publier."
             icon="alert-circle-outline"
             onActionPress={loadOptions}
             title="Publication indisponible"
@@ -387,7 +387,7 @@ export function CreatePostScreen({ navigation }: Props) {
                   setSpotModalVisible(true);
                 }}
                 size="sm"
-                title="Creer un spot"
+                title="Créer un spot"
                 variant="outline"
               />
             </View>
@@ -407,7 +407,7 @@ export function CreatePostScreen({ navigation }: Props) {
                 </View>
               </ScrollView>
             ) : (
-              <Text style={styles.helperText}>Creez un spot pour pouvoir publier votre prise.</Text>
+              <Text style={styles.helperText}>Créez un spot pour pouvoir publier votre prise.</Text>
             )}
 
             <Input
@@ -480,7 +480,7 @@ export function CreatePostScreen({ navigation }: Props) {
         <View style={styles.modalBackdrop}>
           <Card elevated style={styles.modalCard}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.modalTitle}>Creer un spot</Text>
+              <Text style={styles.modalTitle}>Créer un spot</Text>
               <Pressable accessibilityRole="button" onPress={closeSpotModal} style={styles.closeButton}>
                 <Ionicons name="close" size={22} color={colors.text} />
               </Pressable>
@@ -584,7 +584,7 @@ export function CreatePostScreen({ navigation }: Props) {
                     </View>
                   </ScrollView>
                 </View>
-                <Button disabled={!spotCoordinate || !spotDraft.name.trim()} loading={creatingSpot} onPress={submitSpot} title="Creer ce spot" />
+                <Button disabled={!spotCoordinate || !spotDraft.name.trim()} loading={creatingSpot} onPress={submitSpot} title="Créer ce spot" />
               </ScrollView>
             )}
           </Card>

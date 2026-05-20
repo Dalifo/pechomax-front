@@ -19,9 +19,9 @@ const faqCategories = [
     id: 'general',
     title: 'Questions generales',
     questions: [
-      { q: "Qu'est-ce que PechoMax ?", a: 'Une application mobile pour trouver des spots, suivre vos prises et echanger avec d autres pecheurs.' },
+      { q: "Qu'est-ce que PechoMax ?", a: "Une application mobile pour trouver des spots, suivre vos prises et échanger avec d'autres pêcheurs." },
       { q: 'L app est-elle gratuite ?', a: 'PechoMax ne contient aucun paiement ni abonnement dans cette version.' },
-      { q: 'Dois-je creer un compte ?', a: 'Un compte est necessaire pour publier, echanger et retrouver votre journal.' },
+      { q: 'Dois-je créer un compte ?', a: 'Un compte est nécessaire pour publier, échanger et retrouver votre journal.' },
     ],
   },
   {
@@ -36,7 +36,7 @@ const faqCategories = [
     id: 'community',
     title: 'Communaute',
     questions: [
-      { q: 'Comment publier une prise ?', a: 'Utilisez le bouton plus, ajoutez une photo, choisissez une espece et un spot, puis publiez.' },
+      { q: 'Comment publier une prise ?', a: 'Utilisez le bouton plus, ajoutez une photo, choisissez une espèce et un spot, puis publiez.' },
       { q: 'Les messages sont-ils envoyes ?', a: 'Oui. Les conversations et messages sont envoyes apres connexion.' },
     ],
   },

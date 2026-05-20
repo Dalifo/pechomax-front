@@ -31,9 +31,9 @@ const guideSections: GuideSection[] = [
     icon: 'flag-outline',
     items: [
       {
-        title: 'Creer un compte',
-        description: 'Votre profil permet de sauvegarder les spots, publier vos prises et echanger avec la communaute.',
-        steps: ['Ouvrez Welcome puis Register', 'Completez les champs requis', 'Connectez-vous au flux principal', 'Personnalisez votre profil'],
+        title: 'Créer un compte',
+        description: 'Votre profil permet de sauvegarder les spots, publier vos prises et échanger avec la communauté.',
+        steps: ['Ouvrez Login puis Register', 'Complétez les champs requis', 'Connectez-vous au flux principal', 'Personnalisez votre profil'],
       },
       {
         title: "Naviguer dans l'application",
@@ -61,7 +61,7 @@ const guideSections: GuideSection[] = [
     items: [
       {
         title: 'Publier une prise',
-        description: 'Le formulaire permet de publier une prise complete avec photo.',
+        description: 'Le formulaire permet de publier une prise complète avec photo.',
         steps: ['Appuyez sur plus', 'Choisissez une espece et un spot', 'Ajoutez une photo', 'Renseignez poids, longueur et description'],
       },
     ],
@@ -74,7 +74,7 @@ const guideSections: GuideSection[] = [
       {
         title: 'Poissons, articles et outils',
         description: 'Ces ecrans donnent une base de consultation simple.',
-        steps: ['Ouvrez Poissons pour les fiches especes', 'Consultez Articles pour les conseils', 'Utilisez Outils pour preparer une sortie'],
+        steps: ['Ouvrez Poissons pour les fiches espèces', 'Consultez Articles pour les conseils', 'Utilisez Outils pour préparer une sortie'],
       },
     ],
   },

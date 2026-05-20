@@ -14,15 +14,15 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Onboarding'>;
 const steps = [
   {
     title: 'Decouvrez les meilleurs spots',
-    description: 'Explorez des lieux de peche utiles, filtres par type d eau et enrichis par la communaute.',
+    description: "Explorez des lieux de pêche utiles, filtrés par type d'eau et enrichis par la communauté.",
   },
   {
     title: 'Rejoignez la communaute',
-    description: 'Partagez vos prises, echangez des conseils et gardez le lien avec les pecheurs autour de vous.',
+    description: 'Partagez vos prises, échangez des conseils et gardez le lien avec les pêcheurs autour de vous.',
   },
   {
     title: 'Enregistrez vos sessions',
-    description: 'Suivez vos sorties, vos especes favorites et vos progres au meme endroit.',
+    description: 'Suivez vos sorties, vos espèces favorites et vos progrès au même endroit.',
   },
 ];
 
@@ -78,11 +78,11 @@ export function OnboardingScreen({ navigation }: Props) {
           ))}
         </View>
         <Button
-          accessibilityLabel={isLast ? 'Creer un compte' : 'Continuer'}
+          accessibilityLabel={isLast ? 'Créer un compte' : 'Continuer'}
           fullWidth
           iconRight="chevron-forward"
           onPress={next}
-          title={isLast ? 'Creer un compte' : 'Suivant'}
+          title={isLast ? 'Créer un compte' : 'Suivant'}
         />
       </View>
     </Screen>
@@ -146,4 +146,3 @@ const styles = StyleSheet.create({
     width: 8,
   },
 });
-

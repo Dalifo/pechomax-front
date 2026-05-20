@@ -27,7 +27,7 @@ const fallbackShops: Shop[] = [
     rating: 4.4,
     reviews: 86,
     specialties: ['Carpe', 'Appats', 'Bagagerie'],
-    services: ['Appats vivants', 'Carte de peche', 'Conseil'],
+    services: ['Appâts vivants', 'Carte de pêche', 'Conseil'],
   },
   {
     id: 'fallback-shop-3',

@@ -11,8 +11,21 @@ import { SectionTitle } from '../components/ui/SectionTitle';
 import { useFishDetail } from '../hooks/useFish';
 import { RootStackParamList } from '../navigation/types';
 import { colors, opacity, spacing, typography } from '../theme/theme';
+import { WaterType } from '../types/domain';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'FishDetail'>;
+
+function waterTypeLabel(type: WaterType) {
+  if (type === 'saltwater') {
+    return 'Mer';
+  }
+
+  if (type === 'mixed') {
+    return 'Mixte';
+  }
+
+  return 'Eau douce';
+}
 
 export function FishDetailScreen({ navigation, route }: Props) {
   const { data: fish, loading } = useFishDetail(route.params.fishId);
@@ -31,7 +44,7 @@ export function FishDetailScreen({ navigation, route }: Props) {
       <AppHeader onBack={navigation.goBack} showBack title="Fiche poisson" />
       <LinearGradient colors={[colors.primary, colors.secondary]} style={styles.hero}>
         <Ionicons name={fish.type === 'freshwater' ? 'fish-outline' : 'boat-outline'} size={70} color={colors.background} />
-        <Badge label={fish.type === 'freshwater' ? 'Eau douce' : 'Mer'} tone="neutral" style={styles.heroBadge} />
+        <Badge label={waterTypeLabel(fish.type)} tone="neutral" style={styles.heroBadge} />
         <Text style={styles.heroTitle}>{fish.name}</Text>
         <Text style={styles.heroSubtitle}>{fish.scientificName}</Text>
       </LinearGradient>
@@ -44,16 +57,17 @@ export function FishDetailScreen({ navigation, route }: Props) {
             <Text style={styles.quickValue}>{fish.season}</Text>
           </Card>
           <Card padding="md" style={styles.quickCard}>
-            <Ionicons name="shield-checkmark-outline" size={22} color={colors.secondary} />
-            <Text style={styles.quickLabel}>Protection</Text>
-            <Text style={styles.quickValue}>{fish.protectionStatus}</Text>
+            <Ionicons name="speedometer-outline" size={22} color={colors.secondary} />
+            <Text style={styles.quickLabel}>Difficulté</Text>
+            <Text style={styles.quickValue}>{fish.difficulty ?? 'À évaluer'}</Text>
           </Card>
         </View>
 
         <InfoSection icon="information-circle-outline" title="Description" text={fish.description} />
         <InfoSection icon="location-outline" title="Habitat" text={fish.habitat} />
+        <InfoSection icon="resize-outline" title="Taille et poids moyens" text={[fish.averageSize, fish.averageWeight].filter(Boolean).join(' - ')} />
 
-        <SectionTitle icon="radio-button-on-outline" title="Techniques de peche" />
+        <SectionTitle icon="radio-button-on-outline" title="Techniques de pêche" />
         <View style={styles.badgeRow}>
           {fish.techniques.map((technique) => (
             <Badge key={technique} label={technique} tone="primary" />
@@ -61,7 +75,12 @@ export function FishDetailScreen({ navigation, route }: Props) {
         </View>
 
         <Card style={styles.regulationCard}>
-          <SectionTitle icon="ribbon-outline" title="Reglementation" />
+          <SectionTitle icon="shield-checkmark-outline" title="Protection" />
+          <Text style={styles.bodyText}>{fish.protectionStatus}</Text>
+        </Card>
+
+        <Card style={styles.regulationCard}>
+          <SectionTitle icon="ribbon-outline" title="Réglementation" />
           <Text style={styles.bodyText}>{fish.regulation}</Text>
         </Card>
       </View>

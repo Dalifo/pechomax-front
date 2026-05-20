@@ -15,7 +15,7 @@ export function SettingsScreen({ navigation }: Props) {
   const { logout } = useAuth();
 
   const confirmLogout = () => {
-    Alert.alert('Deconnexion', 'Voulez-vous vous deconnecter ?', [
+    Alert.alert('Déconnexion', 'Voulez-vous vous déconnecter ?', [
       { style: 'cancel', text: 'Annuler' },
       {
         onPress: async () => {
@@ -23,14 +23,14 @@ export function SettingsScreen({ navigation }: Props) {
           navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
         },
         style: 'destructive',
-        text: 'Se deconnecter',
+        text: 'Se déconnecter',
       },
     ]);
   };
 
   return (
     <Screen padded={false} scroll>
-      <AppHeader onBack={navigation.goBack} showBack title="Parametres" />
+      <AppHeader onBack={navigation.goBack} showBack title="Paramètres" />
       <View style={styles.content}>
         <View style={styles.section}>
           <SectionTitle title="Compte" />
@@ -50,7 +50,7 @@ export function SettingsScreen({ navigation }: Props) {
 
         <View style={styles.section}>
           <SectionTitle title="Session" />
-          <Button iconLeft="log-out-outline" onPress={confirmLogout} title="Se deconnecter" variant="earth" />
+          <Button iconLeft="log-out-outline" onPress={confirmLogout} title="Se déconnecter" variant="earth" />
         </View>
 
         <Text style={styles.version}>Pechomax v1.0.0</Text>

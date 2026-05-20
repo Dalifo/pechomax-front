@@ -66,7 +66,7 @@ export function ProfileScreen() {
   const { data: profile, error, loading, refresh } = useProfile();
 
   const confirmLogout = () => {
-    Alert.alert('Deconnexion', 'Voulez-vous vous deconnecter ?', [
+    Alert.alert('Déconnexion', 'Voulez-vous vous déconnecter ?', [
       { style: 'cancel', text: 'Annuler' },
       {
         onPress: async () => {
@@ -74,7 +74,7 @@ export function ProfileScreen() {
           navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
         },
         style: 'destructive',
-        text: 'Se deconnecter',
+        text: 'Se déconnecter',
       },
     ]);
   };
@@ -94,7 +94,7 @@ export function ProfileScreen() {
         <AppHeader title="Profil" />
         <View style={styles.content}>
           <EmptyState
-            actionLabel="Reessayer"
+            actionLabel="Réessayer"
             description={error ?? 'Connectez-vous pour afficher votre profil.'}
             icon="person-circle-outline"
             onActionPress={refresh}
@@ -112,7 +112,7 @@ export function ProfileScreen() {
   return (
     <Screen padded={false} scroll>
       <AppHeader
-        action={<IconButton accessibilityLabel="Parametres" icon="settings-outline" onPress={() => navigation.navigate('Settings')} variant="soft" />}
+        action={<IconButton accessibilityLabel="Paramètres" icon="settings-outline" onPress={() => navigation.navigate('Settings')} variant="soft" />}
         title="Profil"
       />
 
@@ -133,6 +133,7 @@ export function ProfileScreen() {
             </View>
           </View>
           <Text style={styles.name}>{profile.displayName}</Text>
+          <Text style={styles.rank}>{profile.rankTitle ?? profile.levelTitle ?? `Niveau ${profile.level}`}</Text>
           <Text style={styles.headline}>{profile.headline}</Text>
           <Button
             accessibilityLabel="Modifier le profil"
@@ -163,7 +164,7 @@ export function ProfileScreen() {
           <Text style={styles.muted}>Encore {profile.xp.nextLevel - profile.xp.current} XP pour le niveau {profile.level + 1}</Text>
         </Card>
 
-        <SectionTitle icon="trophy-outline" title="Succes recents" />
+        <SectionTitle icon="trophy-outline" title="Succès récents" />
         <View style={styles.achievementRow}>
           {profile.achievements.map((achievement) => (
             <Card key={achievement.id} padding="md" style={styles.achievementCard}>
@@ -203,11 +204,11 @@ export function ProfileScreen() {
             badgeTone="secondary"
             icon="trophy-outline"
             onPress={() => navigation.navigate('Trophies')}
-            title="Trophees et badges"
+            title="Trophées et badges"
           />
         </View>
 
-        <Button accessibilityLabel="Deconnexion" onPress={confirmLogout} title="Deconnexion" variant="earth" />
+        <Button accessibilityLabel="Déconnexion" onPress={confirmLogout} title="Déconnexion" variant="earth" />
       </View>
     </Screen>
   );
@@ -279,6 +280,13 @@ const styles = StyleSheet.create({
     fontFamily: typography.fontFamily,
     fontSize: 14,
     marginBottom: spacing.lg,
+    marginTop: spacing.xs,
+  },
+  rank: {
+    color: colors.background,
+    fontFamily: typography.fontFamilyBold,
+    fontSize: 14,
+    fontWeight: typography.weights.bold,
     marginTop: spacing.xs,
   },
   editButton: {

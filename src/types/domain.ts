@@ -2,7 +2,7 @@ import { IconName } from './profile';
 
 export type EntityId = string;
 
-export type WaterType = 'freshwater' | 'saltwater';
+export type WaterType = 'freshwater' | 'saltwater' | 'mixed';
 
 export type UserSummary = {
   id: EntityId;
@@ -109,6 +109,9 @@ export type FishSpecies = {
   protectionStatus: string;
   description: string;
   habitat: string;
+  averageSize?: string;
+  averageWeight?: string;
+  difficulty?: string;
 };
 
 export type ConversationSummary = {
