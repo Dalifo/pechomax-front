@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useMemo, useRef, useState } from 'react';
-import { Animated, Modal, PanResponder, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import * as Location from 'expo-location';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import RNMapView, { MapPressEvent, Marker, Region } from 'react-native-maps';
 import { AppHeader } from '../components/layout/AppHeader';
 import { Screen } from '../components/layout/Screen';
@@ -37,19 +38,18 @@ const FRANCE_REGION: Region = {
 
 type SpotDraft = {
   description: string;
-  latitude: string;
-  longitude: string;
   name: string;
 };
 
-function draftFromRegion(region: Region): SpotDraft {
-  return {
-    description: '',
-    latitude: region.latitude.toFixed(6),
-    longitude: region.longitude.toFixed(6),
-    name: '',
-  };
-}
+type SpotCoordinate = {
+  latitude: number;
+  longitude: number;
+};
+
+const emptySpotDraft: SpotDraft = {
+  description: '',
+  name: '',
+};
 
 function getRegion(spots: FishingSpot[]): Region {
   const geocodedSpots = spots.filter((spot) => spot.coordinates);
@@ -72,19 +72,15 @@ function getRegion(spots: FishingSpot[]): Region {
   };
 }
 
-function coordinateFromInput(value: string) {
-  const parsed = Number.parseFloat(value.replace(',', '.'));
-  return Number.isFinite(parsed) ? parsed : null;
-}
-
-function validCoordinate(latitude: number | null, longitude: number | null) {
+function validCoordinate(coordinate: SpotCoordinate | null): coordinate is SpotCoordinate {
   return (
-    latitude !== null &&
-    longitude !== null &&
-    latitude >= -90 &&
-    latitude <= 90 &&
-    longitude >= -180 &&
-    longitude <= 180
+    coordinate !== null &&
+    Number.isFinite(coordinate.latitude) &&
+    Number.isFinite(coordinate.longitude) &&
+    coordinate.latitude >= -90 &&
+    coordinate.latitude <= 90 &&
+    coordinate.longitude >= -180 &&
+    coordinate.longitude <= 180
   );
 }
 
@@ -106,36 +102,27 @@ function NearbySpotCard({ onPress, selected, spot }: { onPress: () => void; sele
 export function MapViewScreen() {
   const navigation = useNavigation<RootNavigation>();
   const mapRef = useRef<RNMapView | null>(null);
-  const sheetTranslateY = useRef(new Animated.Value(0)).current;
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<FilterId>('all');
   const [selectedSpotId, setSelectedSpotId] = useState<EntityId | null>(null);
   const [currentRegion, setCurrentRegion] = useState<Region>(FRANCE_REGION);
-  const [spotModalVisible, setSpotModalVisible] = useState(false);
-  const [spotDraft, setSpotDraft] = useState<SpotDraft>(draftFromRegion(FRANCE_REGION));
+  const [placementMode, setPlacementMode] = useState(false);
+  const [draftCoordinate, setDraftCoordinate] = useState<SpotCoordinate | null>(null);
+  const [spotDraft, setSpotDraft] = useState<SpotDraft>(emptySpotDraft);
   const [creatingSpot, setCreatingSpot] = useState(false);
   const [spotError, setSpotError] = useState<string | null>(null);
+  const [locationMessage, setLocationMessage] = useState<string | null>(null);
+  const [userLocation, setUserLocation] = useState<SpotCoordinate | null>(null);
   const { error, filteredSpots, loading, refresh } = useSpots(filter, query);
   const mappableSpots = useMemo(() => filteredSpots.filter((spot) => spot.coordinates), [filteredSpots]);
   const mapRegion = useMemo(() => getRegion(mappableSpots.length > 0 ? mappableSpots : filteredSpots), [filteredSpots, mappableSpots]);
   const selectedSpot = filteredSpots.find((spot) => spot.id === selectedSpotId) ?? filteredSpots[0] ?? null;
 
-  const panResponder = useMemo(
-    () =>
-      PanResponder.create({
-        onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dy) > 8,
-        onPanResponderMove: (_, gesture) => {
-          sheetTranslateY.setValue(Math.max(-170, Math.min(300, gesture.dy)));
-        },
-        onPanResponderRelease: (_, gesture) => {
-          Animated.spring(sheetTranslateY, {
-            toValue: gesture.dy < -40 ? -170 : gesture.dy > 60 ? 300 : 0,
-            useNativeDriver: true,
-          }).start();
-        },
-      }),
-    [sheetTranslateY],
-  );
+  useEffect(() => {
+    if (!userLocation && filteredSpots.length > 0) {
+      mapRef.current?.animateToRegion(mapRegion, 350);
+    }
+  }, [filteredSpots.length, mapRegion, userLocation]);
 
   const recenter = () => {
     mapRef.current?.animateToRegion(
@@ -153,51 +140,80 @@ export function MapViewScreen() {
     }
   };
 
-  const openCreateSpot = (draft = draftFromRegion(currentRegion)) => {
-    setSpotDraft(draft);
-    setSpotError(null);
-    setSpotModalVisible(true);
-  };
+  const locateUser = async () => {
+    setLocationMessage(null);
 
-  const onMapPress = (event: MapPressEvent) => {
-    const { latitude, longitude } = event.nativeEvent.coordinate;
-    openCreateSpot({
-      description: '',
-      latitude: latitude.toFixed(6),
-      longitude: longitude.toFixed(6),
-      name: '',
-    });
-  };
-
-  const submitSpot = async () => {
-    const latitude = coordinateFromInput(spotDraft.latitude);
-    const longitude = coordinateFromInput(spotDraft.longitude);
-
-    if (!spotDraft.name.trim() || !spotDraft.description.trim() || !validCoordinate(latitude, longitude)) {
-      setSpotError('Nom, description et coordonnees valides sont obligatoires.');
+    const permission = await Location.requestForegroundPermissionsAsync();
+    if (!permission.granted) {
+      setLocationMessage('Localisation refusee. La carte reste disponible.');
       return;
     }
 
-    const validLatitude = latitude ?? 0;
-    const validLongitude = longitude ?? 0;
+    try {
+      const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const coordinate = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      };
+      setUserLocation(coordinate);
+      mapRef.current?.animateToRegion({ ...coordinate, latitudeDelta: 0.05, longitudeDelta: 0.05 }, 350);
+    } catch {
+      setLocationMessage('Impossible de recuperer votre position.');
+    }
+  };
+
+  const openCreateSpot = () => {
+    setPlacementMode(true);
+    setSpotDraft(emptySpotDraft);
+    setDraftCoordinate(null);
+    setSpotError(null);
+  };
+
+  const cancelPlacement = () => {
+    setPlacementMode(false);
+    setDraftCoordinate(null);
+    setSpotDraft(emptySpotDraft);
+    setSpotError(null);
+  };
+
+  const onMapPress = (event: MapPressEvent) => {
+    if (!placementMode) {
+      return;
+    }
+
+    const { latitude, longitude } = event.nativeEvent.coordinate;
+    setDraftCoordinate({ latitude, longitude });
+    setSpotError(null);
+  };
+
+  const submitSpot = async () => {
+    const coordinate = draftCoordinate;
+
+    if (!spotDraft.name.trim() || !validCoordinate(coordinate)) {
+      setSpotError('Touchez la carte et renseignez un nom pour creer le spot.');
+      return;
+    }
+
     setCreatingSpot(true);
     setSpotError(null);
 
     try {
       const spot = await createSpot({
         description: spotDraft.description,
-        latitude: validLatitude,
-        longitude: validLongitude,
+        latitude: coordinate.latitude,
+        longitude: coordinate.longitude,
         name: spotDraft.name,
       });
       await refresh();
       setSelectedSpotId(spot.id);
-      setSpotModalVisible(false);
+      setPlacementMode(false);
+      setDraftCoordinate(null);
+      setSpotDraft(emptySpotDraft);
       if (spot.coordinates) {
         mapRef.current?.animateToRegion({ ...spot.coordinates, latitudeDelta: 0.08, longitudeDelta: 0.08 }, 350);
       }
     } catch {
-      setSpotError('Impossible de creer ce spot. Verifiez les coordonnees et reessayez.');
+      setSpotError('Impossible de creer ce spot. Verifiez la connexion et reessayez.');
     } finally {
       setCreatingSpot(false);
     }
@@ -205,168 +221,128 @@ export function MapViewScreen() {
 
   return (
     <Screen padded={false} style={styles.root}>
-      <AppHeader
-        action={<IconButton accessibilityLabel="Ajouter un spot" icon="add" onPress={() => openCreateSpot()} variant="primary" />}
-        subtitle={`${filteredSpots.length} spots disponibles`}
-        title="Carte des spots"
-      />
+      <RNMapView
+        ref={mapRef}
+        initialRegion={mapRegion}
+        onPress={onMapPress}
+        onRegionChangeComplete={setCurrentRegion}
+        showsUserLocation={Boolean(userLocation)}
+        style={styles.map}
+      >
+        {mappableSpots.map((spot) => (
+          <Marker
+            coordinate={spot.coordinates!}
+            key={spot.id}
+            onPress={() => selectSpot(spot)}
+            pinColor={spot.id === selectedSpot?.id ? colors.earth : colors.primary}
+            title={spot.name}
+          />
+        ))}
+        {placementMode && draftCoordinate ? (
+          <Marker
+            coordinate={draftCoordinate}
+            draggable
+            onDragEnd={(event) => setDraftCoordinate(event.nativeEvent.coordinate)}
+            pinColor={colors.secondary}
+            title="Nouveau spot"
+          />
+        ) : null}
+      </RNMapView>
 
-      <View style={styles.searchBlock}>
-        <Input
-          accessibilityLabel="Rechercher un spot"
-          iconLeft="search-outline"
-          onChangeText={setQuery}
-          placeholder="Rechercher un spot..."
-          value={query}
+      <View pointerEvents="box-none" style={styles.topOverlay}>
+        <AppHeader
+          action={<IconButton accessibilityLabel="Ajouter un spot" icon="add" onPress={openCreateSpot} variant="primary" />}
+          subtitle={`${filteredSpots.length} spots disponibles`}
+          title="Carte des spots"
         />
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.filterRow}>
-            {filters.map((item) => {
-              const active = item.id === filter;
-              return (
-                <Pressable
-                  accessibilityLabel={`Filtre ${item.label}`}
-                  accessibilityRole="button"
-                  key={item.id}
-                  onPress={() => setFilter(item.id)}
-                  style={({ pressed }) => [styles.filterChip, active && styles.filterChipActive, pressed && styles.pressed]}
-                >
-                  <Text style={[styles.filterText, active && styles.filterTextActive]}>{item.label}</Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </ScrollView>
+        <Card elevated style={styles.searchCard}>
+          <Input
+            accessibilityLabel="Rechercher un spot"
+            iconLeft="search-outline"
+            onChangeText={setQuery}
+            placeholder="Rechercher un spot..."
+            value={query}
+          />
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={styles.filterRow}>
+              {filters.map((item) => {
+                const active = item.id === filter;
+                return (
+                  <Pressable
+                    accessibilityLabel={`Filtre ${item.label}`}
+                    accessibilityRole="button"
+                    key={item.id}
+                    onPress={() => setFilter(item.id)}
+                    style={({ pressed }) => [styles.filterChip, active && styles.filterChipActive, pressed && styles.pressed]}
+                  >
+                    <Text style={[styles.filterText, active && styles.filterTextActive]}>{item.label}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </ScrollView>
+          {locationMessage ? <Text style={styles.errorText}>{locationMessage}</Text> : null}
+        </Card>
       </View>
 
-      <View style={styles.mapArea}>
-        <RNMapView
-          ref={mapRef}
-          initialRegion={mapRegion}
-          onPress={onMapPress}
-          onRegionChangeComplete={setCurrentRegion}
-          style={styles.map}
-        >
-          {mappableSpots.map((spot) => (
-            <Marker
-              anchor={{ x: 0.5, y: 0.5 }}
-              coordinate={spot.coordinates!}
-              key={spot.id}
-              onPress={() => selectSpot(spot)}
-              title={spot.name}
-            >
-              <View style={styles.markerWrap}>
-                <View style={[styles.marker, spot.id === selectedSpot?.id && styles.markerSelected]}>
-                  <Ionicons name="fish-outline" size={18} color={colors.background} />
-                </View>
-              </View>
-            </Marker>
-          ))}
-        </RNMapView>
-
-        <View style={styles.mapControls}>
-          <IconButton accessibilityLabel="Recentrer la carte" icon="navigate-outline" onPress={recenter} variant="soft" />
-        </View>
+      <View style={styles.mapControls}>
+        <Button iconLeft="locate-outline" onPress={locateUser} size="sm" title="Me localiser" variant="secondary" />
+        <IconButton accessibilityLabel="Recentrer la carte" icon="navigate-outline" onPress={recenter} variant="soft" />
       </View>
 
-      <Animated.View style={[styles.bottomSheet, { transform: [{ translateY: sheetTranslateY }] }]}>
-        <View {...panResponder.panHandlers} style={styles.sheetHandleArea}>
-          <View style={styles.sheetHandle} />
-        </View>
-        <ScrollView contentContainerStyle={styles.sheetContent} nestedScrollEnabled showsVerticalScrollIndicator={false}>
-          <View style={styles.panelHeader}>
-            <Text style={styles.panelTitle}>Spots a proximite</Text>
-            <Text style={styles.muted}>{filteredSpots.length} resultats</Text>
-          </View>
-
-          {loading ? <EmptyState description="Chargement des spots." title="Chargement" /> : null}
-
-          {!loading && error ? (
-            <EmptyState actionLabel="Reessayer" description="Impossible de charger les spots." icon="alert-circle-outline" onActionPress={refresh} title="Erreur" />
-          ) : null}
-
-          {!loading && !error && filteredSpots.length === 0 ? (
-            <EmptyState description="Touchez la carte ou utilisez le bouton + pour ajouter un spot." icon="search-outline" title="Aucun spot trouve" />
-          ) : null}
-
-          {!loading && !error && filteredSpots.length > 0 ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View style={styles.nearbyList}>
-                {filteredSpots.map((spot) => (
-                  <NearbySpotCard
-                    key={spot.id}
-                    onPress={() => selectSpot(spot)}
-                    selected={spot.id === selectedSpot?.id}
-                    spot={spot}
-                  />
-                ))}
-              </View>
-            </ScrollView>
-          ) : null}
-
-          {selectedSpot ? (
-            <Card elevated style={styles.previewCard}>
-              <View style={styles.previewHeader}>
-                <View style={styles.fill}>
-                  <Text style={styles.previewTitle}>{selectedSpot.name}</Text>
-                  <Text style={styles.muted}>{selectedSpot.location}</Text>
-                </View>
-                <Badge label={selectedSpot.waterType === 'freshwater' ? 'Eau douce' : 'Mer'} tone="secondary" />
-              </View>
-              <Text style={styles.previewText}>{selectedSpot.conditions || 'Informations disponibles sur la fiche du spot.'}</Text>
-              <View style={styles.previewMeta}>
-                <Text style={styles.metaStrong}>{selectedSpot.rating.toFixed(1)} / 5</Text>
-                <Text style={styles.muted}>{selectedSpot.fish.length > 0 ? selectedSpot.fish.join(', ') : 'Especes a confirmer'}</Text>
-              </View>
-              <Button
-                accessibilityLabel={`Ouvrir ${selectedSpot.name}`}
-                onPress={() => navigation.navigate('SpotDetail', { spotId: selectedSpot.id })}
-                title="Voir le spot"
-              />
-            </Card>
-          ) : null}
-        </ScrollView>
-      </Animated.View>
-
-      <Modal animationType="slide" onRequestClose={() => setSpotModalVisible(false)} transparent visible={spotModalVisible}>
-        <View style={styles.modalBackdrop}>
-          <Card elevated style={styles.modalCard}>
+      <View pointerEvents="box-none" style={styles.bottomOverlay}>
+        {placementMode ? (
+          <Card elevated style={styles.placementCard}>
             <View style={styles.panelHeader}>
-              <Text style={styles.modalTitle}>Ajouter un spot</Text>
-              <Pressable accessibilityRole="button" onPress={() => setSpotModalVisible(false)} style={styles.closeButton}>
+              <Text style={styles.panelTitle}>Placer un nouveau spot</Text>
+              <Pressable accessibilityRole="button" onPress={cancelPlacement} style={styles.closeButton}>
                 <Ionicons name="close" size={22} color={colors.text} />
               </Pressable>
             </View>
+            <Text style={styles.previewText}>
+              {draftCoordinate ? 'Deplacez le repere si besoin, puis validez le spot.' : 'Touchez la carte pour placer le repere.'}
+            </Text>
             <Input label="Nom du spot" onChangeText={(name) => setSpotDraft((current) => ({ ...current, name }))} value={spotDraft.name} />
             <Input
               inputStyle={styles.textArea}
-              label="Description"
+              label="Description (optionnelle)"
               multiline
               onChangeText={(description) => setSpotDraft((current) => ({ ...current, description }))}
               textAlignVertical="top"
               value={spotDraft.description}
             />
-            <View style={styles.coordinateRow}>
-              <Input
-                containerStyle={styles.coordinateInput}
-                keyboardType="decimal-pad"
-                label="Latitude"
-                onChangeText={(latitude) => setSpotDraft((current) => ({ ...current, latitude }))}
-                value={spotDraft.latitude}
-              />
-              <Input
-                containerStyle={styles.coordinateInput}
-                keyboardType="decimal-pad"
-                label="Longitude"
-                onChangeText={(longitude) => setSpotDraft((current) => ({ ...current, longitude }))}
-                value={spotDraft.longitude}
-              />
-            </View>
             {spotError ? <Text style={styles.errorText}>{spotError}</Text> : null}
-            <Button loading={creatingSpot} onPress={submitSpot} title="Creer le spot" />
+            <View style={styles.placementActions}>
+              <Button onPress={cancelPlacement} title="Annuler" variant="ghost" />
+              <Button disabled={!draftCoordinate || !spotDraft.name.trim()} loading={creatingSpot} onPress={submitSpot} title="Creer le spot" />
+            </View>
           </Card>
-        </View>
-      </Modal>
+        ) : selectedSpot ? (
+          <Card elevated style={styles.previewCard}>
+            <View style={styles.previewHeader}>
+              <View style={styles.fill}>
+                <Text style={styles.previewTitle}>{selectedSpot.name}</Text>
+                <Text style={styles.muted}>{selectedSpot.location}</Text>
+              </View>
+              <Badge label={selectedSpot.waterType === 'freshwater' ? 'Eau douce' : 'Mer'} tone="secondary" />
+            </View>
+            <Text numberOfLines={2} style={styles.previewText}>{selectedSpot.conditions || 'Informations disponibles sur la fiche du spot.'}</Text>
+            <Button
+              accessibilityLabel={`Ouvrir ${selectedSpot.name}`}
+              onPress={() => navigation.navigate('SpotDetail', { spotId: selectedSpot.id })}
+              size="sm"
+              title="Voir le spot"
+            />
+          </Card>
+        ) : !loading && !error && filteredSpots.length === 0 ? (
+          <EmptyState description="Touchez le bouton + pour ajouter un spot." icon="search-outline" title="Aucun spot trouve" />
+        ) : null}
+
+        {loading ? <EmptyState description="Chargement des spots." title="Chargement" /> : null}
+        {!loading && error ? (
+          <EmptyState actionLabel="Reessayer" description="Impossible de charger les spots." icon="alert-circle-outline" onActionPress={refresh} title="Erreur" />
+        ) : null}
+      </View>
     </Screen>
   );
 }
@@ -374,11 +350,25 @@ export function MapViewScreen() {
 const styles = StyleSheet.create({
   root: {
     backgroundColor: colors.background,
+    overflow: 'hidden',
   },
-  searchBlock: {
+  topOverlay: {
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
+  searchCard: {
     gap: spacing.md,
-    padding: spacing.xxl,
-    paddingBottom: spacing.lg,
+    marginHorizontal: spacing.lg,
+    padding: spacing.md,
+  },
+  bottomOverlay: {
+    bottom: spacing.lg,
+    gap: spacing.md,
+    left: spacing.lg,
+    position: 'absolute',
+    right: spacing.lg,
   },
   filterRow: {
     flexDirection: 'row',
@@ -402,35 +392,12 @@ const styles = StyleSheet.create({
   filterTextActive: {
     color: colors.background,
   },
-  mapArea: {
-    backgroundColor: opacity.secondary10,
-    flex: 1,
-    minHeight: 360,
-    overflow: 'hidden',
-    position: 'relative',
-  },
   map: {
-    height: '100%',
-    width: '100%',
-  },
-  markerWrap: {
-    padding: 8,
-  },
-  marker: {
-    alignItems: 'center',
-    backgroundColor: colors.primary,
-    borderColor: colors.background,
-    borderRadius: 22,
-    borderWidth: 3,
-    height: 44,
-    justifyContent: 'center',
-    width: 44,
-  },
-  markerSelected: {
-    backgroundColor: colors.earth,
+    ...StyleSheet.absoluteFillObject,
   },
   mapControls: {
-    bottom: spacing.lg,
+    alignItems: 'flex-end',
+    bottom: 168,
     gap: spacing.md,
     position: 'absolute',
     right: spacing.lg,
@@ -495,6 +462,15 @@ const styles = StyleSheet.create({
   },
   previewCard: {
     gap: spacing.md,
+  },
+  placementCard: {
+    gap: spacing.md,
+  },
+  placementActions: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.md,
+    justifyContent: 'flex-end',
   },
   previewHeader: {
     alignItems: 'flex-start',

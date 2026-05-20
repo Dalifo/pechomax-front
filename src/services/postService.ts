@@ -1,7 +1,7 @@
 import { CatchPost, CatchPostDetail, EntityId, PostComment } from '../types/domain';
 import { mapCatchPost, mapCatchPostDetail, mapPostComment } from './apiMappers';
 import { BackendCatch, BackendCatchComment, BackendCatchSocial } from './backendTypes';
-import { httpClient } from './httpClient';
+import { ApiError, hasApiAuthToken, httpClient } from './httpClient';
 
 export type CreatePostInput = {
   date: Date;
@@ -17,6 +17,38 @@ export type CreatePostInput = {
 
 function integerMeasurement(value: number) {
   return Math.max(1, Math.round(value));
+}
+
+function fileNameFromUri(uri: string) {
+  const cleanUri = uri.split('?')[0] ?? uri;
+  const fileName = cleanUri.split('/').filter(Boolean).at(-1);
+  return fileName && fileName.includes('.') ? fileName : 'catch.jpg';
+}
+
+function mimeTypeForUpload(type?: string, name?: string) {
+  const normalized = type?.trim().toLowerCase();
+  if (normalized === 'image/jpg') {
+    return 'image/jpeg';
+  }
+
+  if (normalized?.startsWith('image/')) {
+    return normalized;
+  }
+
+  const extension = name?.split('.').at(-1)?.toLowerCase();
+  if (extension === 'png') {
+    return 'image/png';
+  }
+
+  if (extension === 'webp') {
+    return 'image/webp';
+  }
+
+  if (extension === 'heic' || extension === 'heif') {
+    return 'image/heic';
+  }
+
+  return 'image/jpeg';
 }
 
 export async function getPosts(): Promise<CatchPost[]> {
@@ -114,20 +146,44 @@ export async function createPost(input: CreatePostInput): Promise<CatchPost> {
 
   const weight = integerMeasurement(input.weightGrams);
   const length = integerMeasurement(input.lengthCentimeters);
+  const photoName = input.photoName?.trim() || fileNameFromUri(input.photoUri);
+  const photoType = mimeTypeForUpload(input.photoType, photoName);
+  const date = input.date.toISOString().slice(0, 10);
 
   const body = new FormData();
-  body.append('date', input.date.toISOString().slice(0, 10));
+  body.append('date', date);
   body.append('description', input.description ?? '');
   body.append('length', String(length));
   body.append('locationId', input.locationId);
   body.append('speciesId', input.speciesId);
   body.append('weight', String(weight));
   body.append('pictures', {
-    name: input.photoName ?? 'catch.jpg',
-    type: input.photoType ?? 'image/jpeg',
+    name: photoName,
+    type: photoType,
     uri: input.photoUri,
   } as unknown as Blob);
 
-  const catchItem = await httpClient.post<BackendCatch>('/catches/create', body);
-  return mapCatchPost(catchItem);
+  console.log('[create-catch] request', {
+    authPresent: hasApiAuthToken(),
+    date,
+    hasPhoto: Boolean(input.photoUri),
+    length,
+    locationId: input.locationId,
+    photoMime: photoType,
+    photoName,
+    photoUriPrefix: input.photoUri.slice(0, 24),
+    speciesId: input.speciesId,
+    weight,
+  });
+
+  try {
+    const catchItem = await httpClient.post<BackendCatch>('/catches/create', body);
+    return mapCatchPost(catchItem);
+  } catch (error) {
+    console.log('[create-catch] failed', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      status: error instanceof ApiError ? error.status : undefined,
+    });
+    throw error;
+  }
 }

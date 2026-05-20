@@ -29,16 +29,17 @@ type SelectedPhoto = {
 
 type SpotDraft = {
   description: string;
-  latitude: string;
-  longitude: string;
   name: string;
 };
 
 const defaultSpotDraft: SpotDraft = {
   description: '',
-  latitude: '46.603354',
-  longitude: '1.888334',
   name: '',
+};
+
+type SpotCoordinate = {
+  latitude: number;
+  longitude: number;
 };
 
 function formatDateLabel(date: Date) {
@@ -50,19 +51,15 @@ function integerFromInput(value: string) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function coordinateFromInput(value: string) {
-  const parsed = Number.parseFloat(value.replace(',', '.'));
-  return Number.isFinite(parsed) ? parsed : null;
-}
-
-function validCoordinate(latitude: number | null, longitude: number | null) {
+function validCoordinate(coordinate: SpotCoordinate | null): coordinate is SpotCoordinate {
   return (
-    latitude !== null &&
-    longitude !== null &&
-    latitude >= -90 &&
-    latitude <= 90 &&
-    longitude >= -180 &&
-    longitude <= 180
+    coordinate !== null &&
+    Number.isFinite(coordinate.latitude) &&
+    Number.isFinite(coordinate.longitude) &&
+    coordinate.latitude >= -90 &&
+    coordinate.latitude <= 90 &&
+    coordinate.longitude >= -180 &&
+    coordinate.longitude <= 180
   );
 }
 
@@ -81,6 +78,7 @@ export function CreatePostScreen({ navigation }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [spotModalVisible, setSpotModalVisible] = useState(false);
   const [spotDraft, setSpotDraft] = useState<SpotDraft>(defaultSpotDraft);
+  const [spotCoordinate, setSpotCoordinate] = useState<SpotCoordinate | null>(null);
   const [creatingSpot, setCreatingSpot] = useState(false);
   const { submitPost, submitting } = useCreatePost();
 
@@ -180,17 +178,10 @@ export function CreatePostScreen({ navigation }: Props) {
     });
   };
 
-  const updateSpotPin = (latitude: number, longitude: number) => {
-    setSpotDraft((current) => ({
-      ...current,
-      latitude: latitude.toFixed(6),
-      longitude: longitude.toFixed(6),
-    }));
-  };
-
   const onSpotMapPress = (event: MapPressEvent) => {
     const { latitude, longitude } = event.nativeEvent.coordinate;
-    updateSpotPin(latitude, longitude);
+    setSpotCoordinate({ latitude, longitude });
+    setError(null);
   };
 
   const submit = async () => {
@@ -220,33 +211,31 @@ export function CreatePostScreen({ navigation }: Props) {
   };
 
   const submitSpot = async () => {
-    const latitude = coordinateFromInput(spotDraft.latitude);
-    const longitude = coordinateFromInput(spotDraft.longitude);
+    const coordinate = spotCoordinate;
 
-    if (!spotDraft.name.trim() || !spotDraft.description.trim() || !validCoordinate(latitude, longitude)) {
-      setError('Renseignez un nom, une description et des coordonnees valides pour le spot.');
+    if (!spotDraft.name.trim() || !validCoordinate(coordinate)) {
+      setError('Placez le repere sur la carte et renseignez un nom pour le spot.');
       return;
     }
 
-    const validLatitude = latitude ?? 0;
-    const validLongitude = longitude ?? 0;
     setCreatingSpot(true);
     setError(null);
 
     try {
       const spot = await createSpot({
         description: spotDraft.description,
-        latitude: validLatitude,
-        longitude: validLongitude,
+        latitude: coordinate.latitude,
+        longitude: coordinate.longitude,
         name: spotDraft.name,
         speciesIds: selectedSpeciesId ? [selectedSpeciesId] : [],
       });
       setSpots((current) => [spot, ...current.filter((item) => item.id !== spot.id)]);
       setSelectedSpotId(spot.id);
       setSpotDraft(defaultSpotDraft);
+      setSpotCoordinate(null);
       setSpotModalVisible(false);
     } catch {
-      setError('Impossible de creer ce spot. Verifiez les coordonnees et reessayez.');
+      setError('Impossible de creer ce spot. Verifiez la connexion et reessayez.');
     } finally {
       setCreatingSpot(false);
     }
@@ -317,6 +306,7 @@ export function CreatePostScreen({ navigation }: Props) {
                 iconLeft="add"
                 onPress={() => {
                   setSpotDraft(defaultSpotDraft);
+                  setSpotCoordinate(null);
                   setSpotModalVisible(true);
                 }}
                 size="sm"
@@ -422,54 +412,36 @@ export function CreatePostScreen({ navigation }: Props) {
             <View style={styles.spotMapWrap}>
               <RNMapView
                 initialRegion={{
-                  latitude: coordinateFromInput(spotDraft.latitude) ?? 46.603354,
+                  latitude: selectedSpot?.coordinates?.latitude ?? 46.603354,
                   latitudeDelta: 0.08,
-                  longitude: coordinateFromInput(spotDraft.longitude) ?? 1.888334,
+                  longitude: selectedSpot?.coordinates?.longitude ?? 1.888334,
                   longitudeDelta: 0.08,
                 }}
                 onPress={onSpotMapPress}
                 style={styles.spotMap}
               >
-                <Marker
-                  coordinate={{
-                    latitude: coordinateFromInput(spotDraft.latitude) ?? 46.603354,
-                    longitude: coordinateFromInput(spotDraft.longitude) ?? 1.888334,
-                  }}
-                  draggable
-                  onDragEnd={(event) => {
-                    const { latitude, longitude } = event.nativeEvent.coordinate;
-                    updateSpotPin(latitude, longitude);
-                  }}
-                />
+                {spotCoordinate ? (
+                  <Marker
+                    coordinate={spotCoordinate}
+                    draggable
+                    onDragEnd={(event) => setSpotCoordinate(event.nativeEvent.coordinate)}
+                    pinColor={colors.secondary}
+                  />
+                ) : null}
               </RNMapView>
             </View>
-            <Text style={styles.helperText}>Touchez la carte ou deplacez le repere pour placer le spot.</Text>
+            <Text style={styles.helperText}>
+              {spotCoordinate ? 'Deplacez le repere si besoin, puis validez le spot.' : 'Touchez la carte pour placer le spot.'}
+            </Text>
             <Input
               inputStyle={styles.textAreaSmall}
-              label="Description"
+              label="Description (optionnelle)"
               multiline
               onChangeText={(description) => setSpotDraft((current) => ({ ...current, description }))}
               textAlignVertical="top"
               value={spotDraft.description}
             />
-            <View style={styles.coordinateRow}>
-              <Input
-                containerStyle={styles.coordinateInput}
-                keyboardType="decimal-pad"
-                label="Latitude"
-                onChangeText={(latitude) => setSpotDraft((current) => ({ ...current, latitude }))}
-                value={spotDraft.latitude}
-              />
-              <Input
-                containerStyle={styles.coordinateInput}
-                keyboardType="decimal-pad"
-                label="Longitude"
-                onChangeText={(longitude) => setSpotDraft((current) => ({ ...current, longitude }))}
-                value={spotDraft.longitude}
-              />
-            </View>
-            <Text style={styles.helperText}>Position selectionnee: {spotDraft.latitude}, {spotDraft.longitude}</Text>
-            <Button loading={creatingSpot} onPress={submitSpot} title="Creer ce spot" />
+            <Button disabled={!spotCoordinate || !spotDraft.name.trim()} loading={creatingSpot} onPress={submitSpot} title="Creer ce spot" />
           </Card>
         </View>
       </Modal>

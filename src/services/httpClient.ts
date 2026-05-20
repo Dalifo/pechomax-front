@@ -27,6 +27,10 @@ export function setApiAuthToken(token: string | null) {
   authToken = token;
 }
 
+export function hasApiAuthToken() {
+  return Boolean(authToken);
+}
+
 export function subscribeUnauthorized(listener: UnauthorizedListener) {
   unauthorizedListeners.add(listener);
   return () => {

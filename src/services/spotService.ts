@@ -36,7 +36,7 @@ export async function getSpotById(spotId: EntityId): Promise<FishingSpot | null>
 
 export async function createSpot(input: CreateSpotInput): Promise<FishingSpot> {
   const location = await httpClient.post<BackendLocation>('/locations/create', {
-    description: input.description.trim(),
+    description: input.description.trim() || 'Spot ajoute depuis la carte PechoMax.',
     latitude: input.latitude.toFixed(6),
     longitude: input.longitude.toFixed(6),
     name: input.name.trim(),

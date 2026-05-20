@@ -24,6 +24,12 @@
           "photosPermission": "PechoMax utilise vos photos pour ajouter une image a vos prises."
         }
       ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "PechoMax utilise votre position pour centrer la carte sur votre zone de peche."
+        }
+      ],
       "@react-native-community/datetimepicker"
     ]
   }
