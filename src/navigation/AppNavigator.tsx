@@ -18,6 +18,7 @@ import { FishDetailScreen } from '../screens/FishDetailScreen';
 import { HomeScreen } from '../screens/HomeScreen';
 import { LoginScreen } from '../screens/LoginScreen';
 import { LogbookScreen } from '../screens/LogbookScreen';
+import { MySpotsScreen } from '../screens/MySpotsScreen';
 import { MapViewScreen } from '../screens/MapViewScreen';
 import { NotificationsScreen } from '../screens/NotificationsScreen';
 import { OnboardingScreen } from '../screens/OnboardingScreen';
@@ -100,6 +101,7 @@ export function AppNavigator() {
         <Stack.Screen name="Tools" component={ToolsScreen} />
         <Stack.Screen name="Shops" component={ShopsScreen} />
         <Stack.Screen name="Logbook" component={LogbookScreen} />
+        <Stack.Screen name="MySpots" component={MySpotsScreen} />
         <Stack.Screen name="Trophies" component={TrophiesScreen} />
         <Stack.Screen name="UserGuide" component={UserGuideScreen} />
         <Stack.Screen name="FAQ" component={FAQScreen} />

@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
@@ -103,6 +103,8 @@ function markerColor(spot: FishingSpot) {
 
 export function MapViewScreen() {
   const navigation = useNavigation<RootNavigation>();
+  const route = useRoute<RouteProp<{ Map: { spotId?: string } | undefined }, 'Map'>>();
+  const focusSpotId = route.params?.spotId ?? null;
   const mapRef = useRef<RNMapView | null>(null);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<FilterId>('all');
@@ -128,6 +130,13 @@ export function MapViewScreen() {
       mapRef.current?.animateToRegion(mapRegion, 350);
     }
   }, [filteredSpots.length, mapRegion, userLocation]);
+
+  useEffect(() => {
+    if (!focusSpotId || filteredSpots.length === 0) return;
+    const spot = filteredSpots.find((s) => s.id === focusSpotId);
+    if (spot) selectSpot(spot);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusSpotId, filteredSpots.length]);
 
   useEffect(() => {
     let active = true;

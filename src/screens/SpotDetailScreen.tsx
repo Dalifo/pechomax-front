@@ -6,6 +6,7 @@ import { Image, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import { AppHeader } from '../components/layout/AppHeader';
 import { Screen } from '../components/layout/Screen';
 import { Avatar } from '../components/ui/Avatar';
+import { IconButton } from '../components/ui/IconButton';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -143,7 +144,21 @@ export function SpotDetailScreen({ navigation, route }: Props) {
 
   return (
     <Screen padded={false} scroll>
-      <AppHeader onBack={navigation.goBack} showBack title="Spot" />
+      <AppHeader
+        action={
+          spot.coordinates ? (
+            <IconButton
+              accessibilityLabel="Voir sur la carte"
+              icon="map-outline"
+              onPress={() => navigation.navigate('MainTabs', { screen: 'Map', params: { spotId: spot.id } })}
+              variant="soft"
+            />
+          ) : undefined
+        }
+        onBack={navigation.goBack}
+        showBack
+        title="Spot"
+      />
 
       {spot.imageUrl ? (
         <Image source={{ uri: spot.imageUrl }} style={styles.heroImage} />
