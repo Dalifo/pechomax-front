@@ -101,11 +101,20 @@ function markerColor(spot: FishingSpot) {
   return spot.waterType === 'saltwater' ? colors.secondary : colors.primary;
 }
 
+function normalizeSpeciesName(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
+}
+
 export function MapViewScreen() {
   const navigation = useNavigation<RootNavigation>();
   const mapRef = useRef<RNMapView | null>(null);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<FilterId>('all');
+  const [speciesFilterId, setSpeciesFilterId] = useState<EntityId | 'all'>('all');
   const [selectedSpotId, setSelectedSpotId] = useState<EntityId | null>(null);
   const [currentRegion, setCurrentRegion] = useState<Region>(FRANCE_REGION);
   const [placementMode, setPlacementMode] = useState(false);
@@ -119,15 +128,31 @@ export function MapViewScreen() {
   const [locationMessage, setLocationMessage] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<SpotCoordinate | null>(null);
   const { error, filteredSpots, loading, refresh } = useSpots(filter, query);
-  const mappableSpots = useMemo(() => filteredSpots.filter((spot) => spot.coordinates), [filteredSpots]);
-  const mapRegion = useMemo(() => getRegion(mappableSpots.length > 0 ? mappableSpots : filteredSpots), [filteredSpots, mappableSpots]);
-  const selectedSpot = filteredSpots.find((spot) => spot.id === selectedSpotId) ?? null;
+  const selectedSpecies = speciesFilterId === 'all' ? null : species.find((item) => item.id === speciesFilterId) ?? null;
+  const visibleSpots = useMemo(() => {
+    if (!selectedSpecies) {
+      return filteredSpots;
+    }
+
+    const speciesName = normalizeSpeciesName(selectedSpecies.name);
+    return filteredSpots.filter((spot) => spot.fish.some((fishName) => normalizeSpeciesName(fishName) === speciesName));
+  }, [filteredSpots, selectedSpecies]);
+  const mappableSpots = useMemo(() => visibleSpots.filter((spot) => spot.coordinates), [visibleSpots]);
+  const mapRegion = useMemo(() => getRegion(mappableSpots.length > 0 ? mappableSpots : visibleSpots), [mappableSpots, visibleSpots]);
+  const selectedSpot = visibleSpots.find((spot) => spot.id === selectedSpotId) ?? null;
+  const hasBottomPanel = placementMode || Boolean(selectedSpot) || loading || Boolean(error) || (!loading && !error && visibleSpots.length === 0);
 
   useEffect(() => {
-    if (!userLocation && filteredSpots.length > 0) {
+    if (!userLocation && visibleSpots.length > 0) {
       mapRef.current?.animateToRegion(mapRegion, 350);
     }
-  }, [filteredSpots.length, mapRegion, userLocation]);
+  }, [mapRegion, userLocation, visibleSpots.length]);
+
+  useEffect(() => {
+    if (selectedSpotId && !visibleSpots.some((spot) => spot.id === selectedSpotId)) {
+      setSelectedSpotId(null);
+    }
+  }, [selectedSpotId, visibleSpots]);
 
   useEffect(() => {
     let active = true;
@@ -170,7 +195,7 @@ export function MapViewScreen() {
 
     const permission = await Location.requestForegroundPermissionsAsync();
     if (!permission.granted) {
-      setLocationMessage('Localisation refusee. La carte reste disponible.');
+      setLocationMessage('Localisation refusée. La carte reste disponible.');
       return;
     }
 
@@ -183,7 +208,7 @@ export function MapViewScreen() {
       setUserLocation(coordinate);
       mapRef.current?.animateToRegion({ ...coordinate, latitudeDelta: 0.05, longitudeDelta: 0.05 }, 350);
     } catch {
-      setLocationMessage('Impossible de recuperer votre position.');
+      setLocationMessage('Impossible de récupérer votre position.');
     }
   };
 
@@ -206,7 +231,7 @@ export function MapViewScreen() {
 
   const confirmPlacement = () => {
     if (!validCoordinate(draftCoordinate)) {
-      setSpotError('Touchez la carte pour placer le repere.');
+      setSpotError('Touchez la carte pour placer le repère.');
       return;
     }
 
@@ -230,7 +255,7 @@ export function MapViewScreen() {
 
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
-      setSpotError('Autorisez l acces aux photos pour ajouter une image.');
+      setSpotError("Autorisez l'accès aux photos pour ajouter une image.");
       return;
     }
 
@@ -292,7 +317,7 @@ export function MapViewScreen() {
     const coordinate = draftCoordinate;
 
     if (!spotDraft.name.trim() || !validCoordinate(coordinate)) {
-      setSpotError('Touchez la carte et renseignez un nom pour creer le spot.');
+      setSpotError('Touchez la carte et renseignez un nom pour créer le spot.');
       return;
     }
 
@@ -364,7 +389,7 @@ export function MapViewScreen() {
       <View pointerEvents="box-none" style={styles.topOverlay}>
         <AppHeader
           action={<IconButton accessibilityLabel="Ajouter un spot" icon="add" onPress={openCreateSpot} variant="primary" />}
-          subtitle={`${filteredSpots.length} spots disponibles`}
+          subtitle={`${visibleSpots.length} spots disponibles`}
           title="Carte des spots"
         />
         <Card elevated style={styles.searchCard}>
@@ -393,13 +418,49 @@ export function MapViewScreen() {
               })}
             </View>
           </ScrollView>
+          <View style={styles.speciesFilterHeader}>
+            <Text style={styles.inputLabel}>Poisson</Text>
+            {selectedSpecies ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setSpeciesFilterId('all')}
+                style={({ pressed }) => [styles.clearFilterButton, pressed && styles.pressed]}
+              >
+                <Text style={styles.clearFilterText}>Tous</Text>
+              </Pressable>
+            ) : null}
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={styles.filterRow}>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setSpeciesFilterId('all')}
+                style={({ pressed }) => [styles.filterChip, speciesFilterId === 'all' && styles.filterChipActive, pressed && styles.pressed]}
+              >
+                <Text style={[styles.filterText, speciesFilterId === 'all' && styles.filterTextActive]}>Tous</Text>
+              </Pressable>
+              {species.map((item) => {
+                const active = speciesFilterId === item.id;
+                return (
+                  <Pressable
+                    accessibilityLabel={`Filtrer par ${item.name}`}
+                    accessibilityRole="button"
+                    key={item.id}
+                    onPress={() => setSpeciesFilterId(item.id)}
+                    style={({ pressed }) => [styles.filterChip, active && styles.filterChipActive, pressed && styles.pressed]}
+                  >
+                    <Text style={[styles.filterText, active && styles.filterTextActive]}>{item.name}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </ScrollView>
           {locationMessage ? <Text style={styles.errorText}>{locationMessage}</Text> : null}
         </Card>
       </View>
 
-      <View style={styles.mapControls}>
+      <View style={[styles.mapControls, { bottom: 10 }]}>
         <Button iconLeft="locate-outline" onPress={locateUser} size="sm" title="Me localiser" variant="secondary" />
-        <IconButton accessibilityLabel="Recentrer la carte" icon="navigate-outline" onPress={recenter} variant="soft" />
       </View>
 
       <View pointerEvents="box-none" style={styles.bottomOverlay}>
@@ -412,7 +473,7 @@ export function MapViewScreen() {
               </Pressable>
             </View>
             <Text style={styles.previewText}>
-              {draftCoordinate ? 'Deplacez le repere ou touchez une autre zone.' : 'Touchez la carte pour placer le repere.'}
+              {draftCoordinate ? 'Déplacez le repère ou touchez une autre zone.' : 'Touchez la carte pour placer le repère.'}
             </Text>
             {spotError ? <Text style={styles.errorText}>{spotError}</Text> : null}
             <View style={styles.placementActions}>
@@ -478,7 +539,7 @@ export function MapViewScreen() {
               />
               {species.length > 0 ? (
                 <View>
-                  <Text style={styles.inputLabel}>Poissons presents</Text>
+                  <Text style={styles.inputLabel}>Poissons présents</Text>
                   <View style={styles.speciesWrap}>
                     {species.map((item) => {
                       const active = spotDraft.speciesIds.includes(item.id);
@@ -516,9 +577,10 @@ export function MapViewScreen() {
               <Badge label={selectedSpot.waterType === 'freshwater' ? 'Eau douce' : 'Mer'} tone="secondary" />
             </View>
             <View style={styles.previewStats}>
-              <Text style={styles.metaStrong}>{selectedSpot.rating > 0 ? `${selectedSpot.rating.toFixed(1)} / 5` : 'Pas encore note'}</Text>
+              <Text style={styles.metaStrong}>{selectedSpot.rating > 0 ? `${selectedSpot.rating.toFixed(1)} / 5` : 'Pas encore noté'}</Text>
               <Text style={styles.muted}>{selectedSpot.favoritesCount ?? 0} favoris</Text>
             </View>
+            {selectedSpecies ? <Text style={styles.filterSummary}>Filtré par : {selectedSpecies.name}</Text> : null}
             {selectedSpot.conditions ? <Text numberOfLines={2} style={styles.previewText}>{selectedSpot.conditions}</Text> : null}
             {spotError ? <Text style={styles.errorText}>{spotError}</Text> : null}
             <Button
@@ -536,8 +598,12 @@ export function MapViewScreen() {
               title="Voir le spot"
             />
           </Card>
-        ) : !loading && !error && filteredSpots.length === 0 ? (
-          <EmptyState description="Touchez le bouton + pour ajouter un spot." icon="search-outline" title="Aucun spot trouve" />
+        ) : !loading && !error && visibleSpots.length === 0 ? (
+          <EmptyState
+            description={selectedSpecies ? 'Aucun spot pour cette espèce dans la zone.' : 'Touchez le bouton + pour ajouter un spot.'}
+            icon="search-outline"
+            title="Aucun spot trouvé"
+          />
         ) : null}
 
         {loading ? <EmptyState description="Chargement des spots." title="Chargement" /> : null}
@@ -594,12 +660,27 @@ const styles = StyleSheet.create({
   filterTextActive: {
     color: colors.background,
   },
+  speciesFilterHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  clearFilterButton: {
+    borderRadius: radius.round,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+  },
+  clearFilterText: {
+    color: colors.primary,
+    fontFamily: typography.fontFamilyBold,
+    fontSize: 12,
+    fontWeight: typography.weights.bold,
+  },
   map: {
     ...StyleSheet.absoluteFillObject,
   },
   mapControls: {
     alignItems: 'flex-end',
-    bottom: 168,
     gap: spacing.md,
     position: 'absolute',
     right: spacing.lg,
@@ -793,6 +874,12 @@ const styles = StyleSheet.create({
     fontFamily: typography.fontFamily,
     fontSize: 13,
     lineHeight: 18,
+  },
+  filterSummary: {
+    color: colors.primary,
+    fontFamily: typography.fontFamilyBold,
+    fontSize: 12,
+    fontWeight: typography.weights.bold,
   },
   previewMeta: {
     gap: spacing.xs,

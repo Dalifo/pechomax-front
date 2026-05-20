@@ -69,7 +69,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingHorizontal: spacing.sm,
-    paddingTop: spacing.sm,
   },
   item: {
     alignItems: 'center',
