@@ -324,7 +324,7 @@ export function HomeScreen() {
           <Text style={styles.greeting}>Bonjour {profile?.displayName.split(' ')[0] ?? 'Marc'}</Text>
           <View style={styles.statusRow}>
             <View style={styles.statusDot} />
-            <Text style={styles.muted}>Pret pour une nouvelle session ?</Text>
+            <Text style={styles.muted}>Prêt pour une nouvelle session ?</Text>
           </View>
         </View>
 

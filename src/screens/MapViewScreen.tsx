@@ -4,7 +4,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import RNMapView, { MapPressEvent, Marker, Region } from 'react-native-maps';
 import { AppHeader } from '../components/layout/AppHeader';
 import { Screen } from '../components/layout/Screen';
@@ -202,6 +202,20 @@ export function MapViewScreen() {
     setDraftCoordinate(null);
     setSpotDraft(emptySpotDraft);
     setSpotError(null);
+  };
+
+  const isSpotDirty = draftCoordinate !== null || spotDraft.name.trim().length > 0 || spotDraft.description.trim().length > 0 || spotDraft.photo !== null;
+
+  const confirmCancelPlacement = () => {
+    if (!isSpotDirty) { cancelPlacement(); return; }
+    Alert.alert(
+      "Annuler le spot ?",
+      "Êtes-vous sûr de vouloir annuler ? Les modifications seront perdues.",
+      [
+        { style: 'cancel', text: 'Continuer' },
+        { onPress: cancelPlacement, style: 'destructive', text: 'Annuler quand même' },
+      ],
+    );
   };
 
   const confirmPlacement = () => {
@@ -407,7 +421,7 @@ export function MapViewScreen() {
           <Card elevated style={styles.placementCard}>
             <View style={styles.panelHeader}>
               <Text style={styles.panelTitle}>Placer un nouveau spot</Text>
-              <Pressable accessibilityRole="button" onPress={cancelPlacement} style={styles.closeButton}>
+              <Pressable accessibilityRole="button" onPress={confirmCancelPlacement} style={styles.closeButton}>
                 <Ionicons name="close" size={22} color={colors.text} />
               </Pressable>
             </View>
@@ -416,7 +430,7 @@ export function MapViewScreen() {
             </Text>
             {spotError ? <Text style={styles.errorText}>{spotError}</Text> : null}
             <View style={styles.placementActions}>
-              <Button onPress={cancelPlacement} title="Annuler" variant="ghost" />
+              <Button onPress={confirmCancelPlacement} title="Annuler" variant="ghost" />
               <Button disabled={!draftCoordinate} onPress={confirmPlacement} title="Valider l'emplacement" />
             </View>
           </Card>
@@ -424,7 +438,7 @@ export function MapViewScreen() {
           <Card elevated style={styles.placementCard}>
             <View style={styles.panelHeader}>
               <Text style={styles.panelTitle}>Nouveau spot</Text>
-              <Pressable accessibilityRole="button" onPress={cancelPlacement} style={styles.closeButton}>
+              <Pressable accessibilityRole="button" onPress={confirmCancelPlacement} style={styles.closeButton}>
                 <Ionicons name="close" size={22} color={colors.text} />
               </Pressable>
             </View>
@@ -498,7 +512,7 @@ export function MapViewScreen() {
               ) : null}
               {spotError ? <Text style={styles.errorText}>{spotError}</Text> : null}
               <View style={styles.placementActions}>
-                <Button onPress={cancelPlacement} title="Annuler" variant="ghost" />
+                <Button onPress={confirmCancelPlacement} title="Annuler" variant="ghost" />
                 <View style={styles.submitWrap}>
                   <Button disabled={!draftCoordinate || !spotDraft.name.trim()} loading={creatingSpot} onPress={submitSpot} title="Créer le spot" />
                 </View>
