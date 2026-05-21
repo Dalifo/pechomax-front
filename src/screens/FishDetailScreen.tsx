@@ -49,6 +49,7 @@ export function FishDetailScreen({ navigation, route }: Props) {
 
   const averageText = [fish.averageSize, fish.averageWeight].filter(Boolean).join(' / ') || 'Variable selon le milieu';
   const spotsText = fish.knownSpots.length > 0 ? fish.knownSpots.join(', ') : 'Aucun spot PechoMax associé pour le moment.';
+  const difficulty = fish.difficulty?.trim();
 
   return (
     <Screen padded={false} scroll>
@@ -66,7 +67,7 @@ export function FishDetailScreen({ navigation, route }: Props) {
         </View>
         <View style={styles.heroBadges}>
           <Badge label={waterTypeLabel(fish.type)} tone="neutral" style={styles.heroBadge} />
-          {fish.difficulty ? <Badge label={fish.difficulty} tone="neutral" style={styles.heroBadge} /> : null}
+          {difficulty ? <Badge label={difficulty} tone="neutral" style={styles.heroBadge} /> : null}
           {fish.pointValue > 0 ? <Badge label={`${fish.pointValue} points`} tone="neutral" style={styles.heroBadge} /> : null}
         </View>
       </LinearGradient>
@@ -75,7 +76,7 @@ export function FishDetailScreen({ navigation, route }: Props) {
         <View style={styles.quickGrid}>
           <QuickInfo icon="calendar-outline" label="Saison" value={fish.season} />
           <QuickInfo icon="resize-outline" label="Taille / poids" value={averageText} />
-          <QuickInfo icon="speedometer-outline" label="Difficulté" value={fish.difficulty ?? 'À évaluer'} />
+          {difficulty ? <QuickInfo icon="speedometer-outline" label="Difficulté" value={difficulty} /> : null}
           <QuickInfo icon="location-outline" label="Spots connus" value={String(fish.knownSpots.length)} />
         </View>
 

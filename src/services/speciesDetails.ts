@@ -84,7 +84,6 @@ export function enrichSpecies(name?: string | null): SpeciesDetail {
     averageSize: 'Variable selon l’espèce et le milieu',
     averageWeight: 'Variable',
     description: `${name ?? 'Cette espèce'} est référencée dans PechoMax. Les informations détaillées seront enrichies progressivement.`,
-    difficulty: 'À évaluer',
     habitat: 'Habitats variables selon les secteurs PechoMax.',
     protectionStatus: 'Réglementation locale à vérifier',
     regulation: defaultRegulation,
