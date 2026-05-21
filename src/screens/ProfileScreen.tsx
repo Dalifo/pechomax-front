@@ -23,7 +23,7 @@ import { Badge, ProfileStat } from '../types/profile';
 import { IconName } from '../types/profile';
 
 const INFO_CONTENT: Record<string, string> = {
-  'A propos': `Pechomax est une application dédiée aux passionnés de pêche. Elle vous permet de tenir votre journal de bord, d'explorer une base de données de poissons, de partager vos prises avec la communauté et de découvrir les meilleurs spots près de chez vous.\n\nNotre mission : connecter les pêcheurs et valoriser la pratique responsable de la pêche.\n\nVersion 1.0.0 — © 2025 Pechomax. Tous droits réservés.`,
+  'À propos': `Pechomax est une application dédiée aux passionnés de pêche. Elle vous permet de tenir votre journal de bord, d'explorer une base de données de poissons, de partager vos prises avec la communauté et de découvrir les meilleurs spots près de chez vous.\n\nNotre mission : connecter les pêcheurs et valoriser la pratique responsable de la pêche.\n\nVersion 1.0.0 — © 2025 Pechomax. Tous droits réservés.`,
   'Aide et support': `Besoin d'aide ? Plusieurs ressources sont à votre disposition :\n\n• Guide utilisateur : accédez au guide complet depuis les Paramètres pour découvrir toutes les fonctionnalités.\n\n• FAQ : consultez les questions fréquentes pour trouver rapidement une réponse.\n\n• Contact : notre équipe est disponible via le formulaire de contact pour toute question ou signalement.\n\nNous répondons sous 48 h en jours ouvrés.`,
   "Conditions d'utilisation": `En utilisant Pechomax, vous acceptez les conditions suivantes :\n\n1. Utilisation personnelle — L'application est réservée à un usage personnel et non commercial.\n\n2. Contenu partagé — Vous êtes responsable des contenus que vous publiez (photos, commentaires, spots). Tout contenu inapproprié sera supprimé.\n\n3. Données personnelles — Vos données sont traitées conformément à notre politique de confidentialité et au RGPD.\n\n4. Propriété intellectuelle — Le contenu de l'application (textes, images, icônes) est protégé par le droit d'auteur.\n\n5. Modifications — Pechomax se réserve le droit de modifier ces conditions à tout moment, avec notification préalable.`,
 };
@@ -223,7 +223,7 @@ export function ProfileScreen() {
           ))}
         </View>
 
-        <Button accessibilityLabel="Deconnexion" onPress={confirmLogout} title="Deconnexion" variant="earth" />
+        <Button accessibilityLabel="Déconnexion" onPress={confirmLogout} title="Déconnexion" variant="earth" />
       </View>
 
       <InfoModal
