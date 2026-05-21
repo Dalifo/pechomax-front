@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Alert, Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppHeader } from '../components/layout/AppHeader';
 import { Screen } from '../components/layout/Screen';
 import { Avatar } from '../components/ui/Avatar';
@@ -17,6 +18,18 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Conversation'>;
 export function ConversationScreen({ navigation, route }: Props) {
   const { conversation, loading, messages, send } = useConversation(route.params.conversationId);
   const [draft, setDraft] = useState('');
+  const scrollRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    const sub = Keyboard.addListener('keyboardDidShow', () => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    });
+    return () => sub.remove();
+  }, []);
+
+  useEffect(() => {
+    scrollRef.current?.scrollToEnd({ animated: false });
+  }, [messages.length]);
 
   const submit = async () => {
     const text = draft.trim();
@@ -43,15 +56,18 @@ export function ConversationScreen({ navigation, route }: Props) {
   }
 
   return (
-    <Screen padded={false}>
-      <AppHeader
-        onBack={navigation.goBack}
-        showBack
-        subtitle={conversation.online ? 'En ligne' : 'Hors ligne'}
-        title={conversation.user.name}
-      />
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.fill}>
-        <ScrollView contentContainerStyle={styles.messages} showsVerticalScrollIndicator={false}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.root}
+    >
+      <SafeAreaView edges={['top', 'left', 'right']} style={styles.fill}>
+        <AppHeader
+          onBack={navigation.goBack}
+          showBack
+          subtitle={conversation.online ? 'En ligne' : 'Hors ligne'}
+          title={conversation.user.name}
+        />
+        <ScrollView ref={scrollRef} contentContainerStyle={styles.messages} showsVerticalScrollIndicator={false}>
           <View style={styles.datePill}>
             <Text style={styles.dateText}>Aujourd'hui</Text>
           </View>
@@ -71,8 +87,8 @@ export function ConversationScreen({ navigation, route }: Props) {
             <Ionicons name="send" size={19} color={colors.background} />
           </Pressable>
         </View>
-      </KeyboardAvoidingView>
-    </Screen>
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -91,6 +107,10 @@ function MessageBubble({ message }: { message: Message }) {
 }
 
 const styles = StyleSheet.create({
+  root: {
+    backgroundColor: colors.background,
+    flex: 1,
+  },
   fill: {
     flex: 1,
   },

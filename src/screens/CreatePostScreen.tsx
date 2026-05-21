@@ -3,7 +3,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useMemo, useState } from 'react';
-import { Image, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import RNMapView, { MapPressEvent, Marker } from 'react-native-maps';
 import { AppHeader } from '../components/layout/AppHeader';
 import { Screen } from '../components/layout/Screen';
@@ -90,6 +90,37 @@ export function CreatePostScreen({ navigation }: Props) {
   const [creatingSpot, setCreatingSpot] = useState(false);
   const [showFormError, setShowFormError] = useState(false);
   const { submitPost, submitting } = useCreatePost();
+
+  const isDirty = Boolean(photo) || description.trim().length > 0 || weightGrams !== '' || lengthCentimeters !== '';
+  const isSpotDirty = spotCoordinate !== null || spotDraft.name.trim().length > 0 || spotDraft.description.trim().length > 0 || spotDraft.photo !== null;
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      if (!isDirty) return;
+      e.preventDefault();
+      Alert.alert(
+        "Annuler la création ?",
+        "Êtes-vous sûr de vouloir annuler ? Les modifications seront perdues.",
+        [
+          { style: 'cancel', text: 'Continuer' },
+          { onPress: () => navigation.dispatch(e.data.action), style: 'destructive', text: 'Annuler quand même' },
+        ],
+      );
+    });
+    return unsubscribe;
+  }, [isDirty, navigation]);
+
+  const confirmCloseSpot = () => {
+    if (!isSpotDirty) { closeSpotModal(); return; }
+    Alert.alert(
+      "Annuler le spot ?",
+      "Êtes-vous sûr de vouloir annuler ? Les modifications seront perdues.",
+      [
+        { style: 'cancel', text: 'Continuer' },
+        { onPress: closeSpotModal, style: 'destructive', text: 'Annuler quand même' },
+      ],
+    );
+  };
 
   const loadOptions = async () => {
     setLoadingOptions(true);
@@ -482,12 +513,12 @@ export function CreatePostScreen({ navigation }: Props) {
         <Button accessibilityLabel="Annuler" onPress={navigation.goBack} title="Annuler" variant="ghost" />
       </View>
 
-      <Modal animationType="slide" onRequestClose={closeSpotModal} transparent visible={spotModalVisible}>
+      <Modal animationType="slide" onRequestClose={confirmCloseSpot} transparent visible={spotModalVisible}>
         <View style={styles.modalBackdrop}>
           <Card elevated style={styles.modalCard}>
             <View style={styles.sectionHeader}>
               <Text style={styles.modalTitle}>Créer un spot</Text>
-              <Pressable accessibilityRole="button" onPress={closeSpotModal} style={styles.closeButton}>
+              <Pressable accessibilityRole="button" onPress={confirmCloseSpot} style={styles.closeButton}>
                 <Ionicons name="close" size={22} color={colors.text} />
               </Pressable>
             </View>
@@ -518,7 +549,7 @@ export function CreatePostScreen({ navigation }: Props) {
             {spotModalError ? <Text style={styles.errorText}>{spotModalError}</Text> : null}
             {!spotFormVisible ? (
               <View style={styles.spotModalActions}>
-                <Button onPress={closeSpotModal} title="Annuler" variant="ghost" />
+                <Button onPress={confirmCloseSpot} title="Annuler" variant="ghost" />
                 <Button disabled={!spotCoordinate} onPress={confirmSpotPlacement} title="Valider l'emplacement" />
               </View>
             ) : (
