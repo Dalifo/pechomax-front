@@ -65,7 +65,6 @@ export function ConversationScreen({ navigation, route }: Props) {
         <AppHeader
           onBack={navigation.goBack}
           showBack
-          subtitle={conversation.online ? 'En ligne' : 'Hors ligne'}
           title={recipient?.name ?? conversation.user.name}
         />
         <ScrollView ref={scrollRef} contentContainerStyle={styles.messages} showsVerticalScrollIndicator={false}>

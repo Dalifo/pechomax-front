@@ -49,24 +49,24 @@ type ChallengeState =
 const dailyChallenges: DailyChallenge[] = [
   { category: 'catch', description: 'Publiez trois prises sur votre journal PechoMax.', difficulty: 'Intermédiaire', icon: 'fish-outline', id: 'catch-3', kind: 'numeric', target: 3, title: 'Attraper 3 poissons' },
   { category: 'catch', description: 'Partagez une nouvelle prise avec une photo.', difficulty: 'Facile', icon: 'camera-outline', id: 'publish-catch', kind: 'binary', title: 'Publier une prise' },
-  { category: 'spot', description: 'Ajoutez un spot utile pour la communaute.', difficulty: 'Facile', icon: 'location-outline', id: 'add-spot', kind: 'binary', title: 'Ajouter un spot' },
+  { category: 'spot', description: 'Ajoutez un spot utile pour la communauté.', difficulty: 'Facile', icon: 'location-outline', id: 'add-spot', kind: 'binary', title: 'Ajouter un spot' },
   { category: 'spot', description: 'Renseignez au moins trois spots dans votre profil.', difficulty: 'Intermédiaire', icon: 'map-outline', id: 'spots-3', kind: 'numeric', target: 3, title: 'Explorer 3 spots' },
   { category: 'catch', description: 'Atteignez cinq prises publiées sur PechoMax.', difficulty: 'Intermédiaire', icon: 'file-tray-full-outline', id: 'catch-5', kind: 'numeric', target: 5, title: 'Attraper 5 poissons' },
   { category: 'catch', description: 'Publiez une prise de plus de 2 kg.', difficulty: 'Intermédiaire', icon: 'scale-outline', id: 'heavy-fish', kind: 'binary', title: 'Attraper un poisson de plus de 2 kg' },
   { category: 'species', description: 'Essayez une espèce différente lors de votre prochaine sortie.', difficulty: 'Intermédiaire', icon: 'fish-outline', id: 'new-species', kind: 'binary', title: 'Varier les espèces' },
-  { category: 'spot', description: 'Ouvrez un spot mer et preparez une session adaptee.', difficulty: 'Facile', icon: 'water-outline', id: 'sea-spot', kind: 'binary', title: 'Preparer une sortie mer' },
-  { category: 'spot', description: 'Ouvrez un spot eau douce et reperez les poissons presents.', difficulty: 'Facile', icon: 'leaf-outline', id: 'freshwater-spot', kind: 'binary', title: 'Preparer une sortie eau douce' },
-  { category: 'community', description: 'Ajoutez un commentaire utile sur une prise ou un spot.', difficulty: 'Facile', icon: 'chatbubble-outline', id: 'comment', kind: 'binary', title: 'Aider la communaute' },
+  { category: 'spot', description: 'Ouvrez un spot mer et préparez une session adaptée.', difficulty: 'Facile', icon: 'water-outline', id: 'sea-spot', kind: 'binary', title: 'Préparer une sortie mer' },
+  { category: 'spot', description: 'Ouvrez un spot eau douce et repérez les poissons présents.', difficulty: 'Facile', icon: 'leaf-outline', id: 'freshwater-spot', kind: 'binary', title: 'Préparer une sortie eau douce' },
+  { category: 'community', description: 'Ajoutez un commentaire utile sur une prise ou un spot.', difficulty: 'Facile', icon: 'chatbubble-outline', id: 'comment', kind: 'binary', title: 'Aider la communauté' },
   { category: 'explore', description: 'Consultez la carte et choisissez votre prochaine destination.', difficulty: 'Facile', icon: 'navigate-outline', id: 'open-map', kind: 'binary', title: 'Explorer la carte' },
   { category: 'catch', description: 'Atteignez dix prises publiées sur PechoMax.', difficulty: 'Expert', icon: 'trophy-outline', id: 'catch-10', kind: 'numeric', target: 10, title: 'Compléter 10 prises' },
   { category: 'spot', description: 'Ajoutez cinq spots avec des informations utiles.', difficulty: 'Expert', icon: 'flag-outline', id: 'spots-5', kind: 'numeric', target: 5, title: 'Construire sa carte' },
   { category: 'catch', description: 'Publiez une prise récente avec poids, longueur et spot.', difficulty: 'Facile', icon: 'add-circle-outline', id: 'complete-catch', kind: 'binary', title: 'Compléter une fiche prise' },
-  { category: 'species', description: 'Reperez les poissons disponibles sur un spot proche.', difficulty: 'Facile', icon: 'search-outline', id: 'spot-species', kind: 'binary', title: 'Identifier les poissons' },
-  { category: 'spot', description: 'Sauvegardez un spot interessant pour une prochaine sortie.', difficulty: 'Facile', icon: 'heart-outline', id: 'favorite-spot', kind: 'binary', title: 'Mettre un spot en favori' },
-  { category: 'spot', description: 'Notez un spot apres l avoir consulte.', difficulty: 'Facile', icon: 'star-outline', id: 'rate-spot', kind: 'binary', title: 'Noter un spot' },
+  { category: 'species', description: 'Repérez les poissons disponibles sur un spot proche.', difficulty: 'Facile', icon: 'search-outline', id: 'spot-species', kind: 'binary', title: 'Identifier les poissons' },
+  { category: 'spot', description: 'Sauvegardez un spot intéressant pour une prochaine sortie.', difficulty: 'Facile', icon: 'heart-outline', id: 'favorite-spot', kind: 'binary', title: 'Mettre un spot en favori' },
+  { category: 'spot', description: "Notez un spot après l'avoir consulté.", difficulty: 'Facile', icon: 'star-outline', id: 'rate-spot', kind: 'binary', title: 'Noter un spot' },
   { category: 'catch', description: 'Atteignez le prochain niveau avec vos prises.', difficulty: 'Intermédiaire', icon: 'trending-up-outline', id: 'level-progress', kind: 'numeric', target: 100, title: 'Progresser vers le niveau suivant' },
   { category: 'explore', description: 'Trouvez un spot a moins de 150 km.', difficulty: 'Facile', icon: 'compass-outline', id: 'nearby-spot', kind: 'binary', title: 'Trouver un spot proche' },
-  { category: 'community', description: 'Consultez les prises recentes de la communaute.', difficulty: 'Facile', icon: 'people-outline', id: 'community-feed', kind: 'binary', title: 'Suivre la communaute' },
+  { category: 'community', description: 'Consultez les prises récentes de la communauté.', difficulty: 'Facile', icon: 'people-outline', id: 'community-feed', kind: 'binary', title: 'Suivre la communauté' },
   { category: 'catch', description: 'Publiez deux prises pour alimenter votre logbook.', difficulty: 'Intermédiaire', icon: 'book-outline', id: 'catch-2', kind: 'numeric', target: 2, title: 'Remplir le logbook' },
   { category: 'spot', description: 'Ajoutez une photo à un spot pour aider les autres pêcheurs.', difficulty: 'Intermédiaire', icon: 'image-outline', id: 'spot-photo', kind: 'binary', title: 'Illustrer un spot' },
 ];
@@ -164,19 +164,19 @@ function coordinateFromProfile(profile: ReturnType<typeof useProfile>['data']) {
 
 function formatDistance(distance?: number) {
   if (!Number.isFinite(distance)) {
-    return 'Distance a verifier';
+    return 'Distance à vérifier';
   }
 
   return `${Math.max(1, Math.round(distance ?? 0))} km`;
 }
 
-function StatTile({ icon, label, onPress, value, tone }: { icon: IconName; label: string; onPress?: () => void; value: string; tone: 'primary' | 'secondary' | 'earth' }) {
+function StatTile({ compactValue = false, icon, label, onPress, value, tone }: { compactValue?: boolean; icon: IconName; label: string; onPress?: () => void; value: string; tone: 'primary' | 'secondary' | 'earth' }) {
   const backgroundColor = tone === 'primary' ? colors.primary : tone === 'secondary' ? colors.secondary : colors.earth;
 
   return (
     <Card onPress={onPress} padding="md" style={[styles.statTile, { backgroundColor }]}>
       <Ionicons name={icon} size={20} color={colors.background} />
-      <Text style={styles.statValue}>{value}</Text>
+      <Text numberOfLines={2} style={[styles.statValue, compactValue && styles.statValueCompact]}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
     </Card>
   );
@@ -334,14 +334,14 @@ export function HomeScreen() {
         <View style={styles.statsRow}>
           <StatTile icon="fish-outline" label="Prises" onPress={() => navigation.navigate('Logbook')} tone="primary" value={profileStatValue('catches', String(posts.length))} />
           <StatTile icon="location-outline" label="Spots" onPress={() => navigation.navigate('MySpots')} tone="secondary" value={profileStatValue('spots', String(spots.length))} />
-          <StatTile icon="trophy-outline" label="Niveau" tone="earth" value={profile?.rankTitle ?? profile?.levelTitle ?? `Niv. ${profile?.level ?? 1}`} />
+          <StatTile compactValue icon="trophy-outline" label="Niveau" tone="earth" value={profile?.rankTitle ?? profile?.levelTitle ?? `Niv. ${profile?.level ?? 1}`} />
         </View>
 
         <Card elevated style={styles.challengeCard}>
           <View style={styles.challengeHeader}>
             <View style={styles.challengeTitleRow}>
               <Ionicons name={dailyChallenge.icon} size={22} color={colors.background} />
-              <Text style={styles.challengeTitle}>Defi du jour</Text>
+              <Text style={styles.challengeTitle}>Défi du jour</Text>
             </View>
             <Badge label={dailyChallenge.difficulty} tone="neutral" style={styles.challengeBadge} textStyle={styles.challengeBadgeText} />
           </View>
@@ -464,6 +464,10 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: typography.weights.bold,
     marginTop: spacing.sm,
+  },
+  statValueCompact: {
+    fontSize: 15,
+    lineHeight: 18,
   },
   statLabel: {
     color: opacity.surface88,

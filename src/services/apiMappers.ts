@@ -412,6 +412,7 @@ export function mapUserProfile(user: BackendUser): UserProfile {
   const level = user.level?.value ?? 1;
   const levelTitle = user.level?.title ?? `Niveau ${level}`;
   const rankTitle = rankTitleForLevel(level, levelTitle);
+  const displayLevelTitle = rankTitle ?? levelTitle;
   const score = user.score ?? 0;
   const nextLevel = user.level?.end ?? Math.max(1000, score + 500);
 
@@ -439,7 +440,7 @@ export function mapUserProfile(user: BackendUser): UserProfile {
     stats: [
       { icon: 'fish-outline', id: 'catches', label: 'Prises', value: String(catchCount) },
       { icon: 'location-outline', id: 'spots', label: 'Spots', value: String(spotCount) },
-      { icon: 'trophy-outline', id: 'level', label: 'Niveau', value: levelTitle },
+      { icon: 'trophy-outline', id: 'level', label: 'Niveau', value: displayLevelTitle },
     ],
     xp: {
       current: score,

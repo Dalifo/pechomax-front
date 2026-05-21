@@ -15,6 +15,7 @@ type ScreenProps = PropsWithChildren<{
   avoidKeyboard?: boolean;
   contentContainerStyle?: StyleProp<ViewStyle>;
   edges?: Edge[];
+  keyboardVerticalOffset?: number;
   padded?: boolean;
   scroll?: boolean;
   style?: StyleProp<ViewStyle>;
@@ -25,11 +26,12 @@ export function Screen({
   children,
   contentContainerStyle,
   edges,
+  keyboardVerticalOffset = 0,
   padded = true,
   scroll = false,
   style,
 }: ScreenProps) {
-  const contentStyle = [padded && styles.padded, contentContainerStyle];
+  const contentStyle = [padded && styles.padded, avoidKeyboard && scroll && styles.keyboardScrollContent, contentContainerStyle];
   const body = scroll ? (
     <ScrollView
       bounces
@@ -52,7 +54,8 @@ export function Screen({
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={keyboardVerticalOffset}
       style={styles.root}
     >
       {safeContent}
@@ -71,5 +74,9 @@ const styles = StyleSheet.create({
   padded: {
     paddingHorizontal: spacing.xxl,
     paddingVertical: spacing.xl,
+  },
+  keyboardScrollContent: {
+    flexGrow: 1,
+    paddingBottom: spacing.xxxl * 2,
   },
 });

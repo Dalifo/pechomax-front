@@ -32,11 +32,12 @@ type RootNavigation = NativeStackNavigationProp<RootStackParamList>;
 
 function ProfileStatCard({ stat }: { stat: ProfileStat }) {
   const tone = stat.id === 'catches' ? colors.primary : stat.id === 'spots' ? colors.secondary : colors.earth;
+  const compactValue = stat.id === 'level';
 
   return (
     <View style={[styles.statCard, { backgroundColor: tone }]}>
       <Ionicons name={stat.icon} size={20} color={colors.background} />
-      <Text style={styles.statValue}>{stat.value}</Text>
+      <Text numberOfLines={2} style={[styles.statValue, compactValue && styles.statValueCompact]}>{stat.value}</Text>
       <Text style={styles.statLabel}>{stat.label}</Text>
     </View>
   );
@@ -338,6 +339,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: typography.weights.bold,
     marginTop: spacing.sm,
+  },
+  statValueCompact: {
+    fontSize: 15,
+    lineHeight: 18,
+    textAlign: 'center',
   },
   statLabel: {
     color: opacity.surface88,

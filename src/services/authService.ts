@@ -108,9 +108,7 @@ async function restoreAuthState(): Promise<AuthState> {
   try {
     persisted = await readPersistedAuthState();
     if (persisted) {
-      authState = persisted;
       setApiAuthToken(persisted.token ?? null);
-      emit();
     }
 
     const payload = await httpClient.get<BackendAuthSelf>('/auth/login', {
@@ -124,7 +122,7 @@ async function restoreAuthState(): Promise<AuthState> {
       return setAuthState({ isAuthenticated: false, token: null, user: null });
     }
 
-    return persisted ?? setAuthState({ isAuthenticated: false, token: null, user: null });
+    return setAuthState({ isAuthenticated: false, token: null, user: null });
   }
 }
 

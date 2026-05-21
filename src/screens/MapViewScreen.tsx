@@ -116,7 +116,8 @@ export function MapViewScreen() {
   const mapRef = useRef<RNMapView | null>(null);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<FilterId>('all');
-  const [speciesFilterId, setSpeciesFilterId] = useState<EntityId | 'all'>('all');
+  const [selectedSpeciesIds, setSelectedSpeciesIds] = useState<EntityId[]>([]);
+  const [fishFilterOpen, setFishFilterOpen] = useState(false);
   const [selectedSpotId, setSelectedSpotId] = useState<EntityId | null>(null);
   const [currentRegion, setCurrentRegion] = useState<Region>(FRANCE_REGION);
   const [placementMode, setPlacementMode] = useState(false);
@@ -130,19 +131,28 @@ export function MapViewScreen() {
   const [locationMessage, setLocationMessage] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<SpotCoordinate | null>(null);
   const { error, filteredSpots, loading, refresh } = useSpots(filter, query);
-  const selectedSpecies = speciesFilterId === 'all' ? null : species.find((item) => item.id === speciesFilterId) ?? null;
+  const selectedSpecies = useMemo(
+    () => species.filter((item) => selectedSpeciesIds.includes(item.id)),
+    [selectedSpeciesIds, species],
+  );
   const visibleSpots = useMemo(() => {
-    if (!selectedSpecies) {
+    if (selectedSpecies.length === 0) {
       return filteredSpots;
     }
 
-    const speciesName = normalizeSpeciesName(selectedSpecies.name);
-    return filteredSpots.filter((spot) => spot.fish.some((fishName) => normalizeSpeciesName(fishName) === speciesName));
+    const selectedSpeciesNames = new Set(selectedSpecies.map((item) => normalizeSpeciesName(item.name)));
+    return filteredSpots.filter((spot) => spot.fish.some((fishName) => selectedSpeciesNames.has(normalizeSpeciesName(fishName))));
   }, [filteredSpots, selectedSpecies]);
   const mappableSpots = useMemo(() => visibleSpots.filter((spot) => spot.coordinates), [visibleSpots]);
   const mapRegion = useMemo(() => getRegion(mappableSpots.length > 0 ? mappableSpots : visibleSpots), [mappableSpots, visibleSpots]);
   const selectedSpot = visibleSpots.find((spot) => spot.id === selectedSpotId) ?? null;
-  const hasBottomPanel = placementMode || Boolean(selectedSpot) || loading || Boolean(error) || (!loading && !error && visibleSpots.length === 0);
+  const selectedSpeciesCount = selectedSpecies.length;
+  const fishFilterLabel =
+    selectedSpeciesCount === 0
+      ? 'Tous les poissons'
+      : selectedSpeciesCount === 1
+        ? selectedSpecies[0].name
+        : `${selectedSpeciesCount} poissons sélectionnés`;
 
   useEffect(() => {
     if (!userLocation && visibleSpots.length > 0) {
@@ -304,6 +314,12 @@ export function MapViewScreen() {
     }));
   };
 
+  const toggleSpeciesFilter = (speciesId: EntityId) => {
+    setSelectedSpeciesIds((current) =>
+      current.includes(speciesId) ? current.filter((id) => id !== speciesId) : [...current, speciesId],
+    );
+  };
+
   const toggleDraftSpecies = (speciesId: EntityId) => {
     setSpotDraft((current) => ({
       ...current,
@@ -441,43 +457,52 @@ export function MapViewScreen() {
               })}
             </View>
           </ScrollView>
-          <View style={styles.speciesFilterHeader}>
-            <Text style={styles.inputLabel}>Poisson</Text>
-            {selectedSpecies ? (
+          <Pressable
+            accessibilityLabel="Choisir un filtre poisson"
+            accessibilityRole="button"
+            onPress={() => setFishFilterOpen((current) => !current)}
+            style={({ pressed }) => [styles.filterButton, pressed && styles.pressed]}
+          >
+            <View style={styles.filterButtonIcon}>
+              <Ionicons name="fish-outline" size={18} color={colors.primary} />
+            </View>
+            <View style={styles.filterButtonText}>
+              <Text style={styles.filterButtonLabel}>Poisson</Text>
+              <Text numberOfLines={1} style={styles.filterButtonValue}>{fishFilterLabel}</Text>
+            </View>
+            {selectedSpeciesCount > 0 ? <Badge label={String(selectedSpeciesCount)} tone="primary" /> : null}
+            <Ionicons name={fishFilterOpen ? 'chevron-up' : 'chevron-down'} size={18} color={colors.textMuted} />
+          </Pressable>
+          {fishFilterOpen ? (
+            <ScrollView
+              nestedScrollEnabled
+              showsVerticalScrollIndicator
+              style={styles.fishFilterScroll}
+              contentContainerStyle={styles.fishFilterPanel}
+            >
               <Pressable
                 accessibilityRole="button"
-                onPress={() => setSpeciesFilterId('all')}
-                style={({ pressed }) => [styles.clearFilterButton, pressed && styles.pressed]}
+                onPress={() => setSelectedSpeciesIds([])}
+                style={({ pressed }) => [styles.fishOption, selectedSpeciesCount === 0 && styles.fishOptionActive, pressed && styles.pressed]}
               >
-                <Text style={styles.clearFilterText}>Tous</Text>
-              </Pressable>
-            ) : null}
-          </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View style={styles.filterRow}>
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => setSpeciesFilterId('all')}
-                style={({ pressed }) => [styles.filterChip, speciesFilterId === 'all' && styles.filterChipActive, pressed && styles.pressed]}
-              >
-                <Text style={[styles.filterText, speciesFilterId === 'all' && styles.filterTextActive]}>Tous</Text>
+                <Text style={[styles.fishOptionText, selectedSpeciesCount === 0 && styles.fishOptionTextActive]}>Tous les poissons</Text>
               </Pressable>
               {species.map((item) => {
-                const active = speciesFilterId === item.id;
+                const active = selectedSpeciesIds.includes(item.id);
                 return (
                   <Pressable
                     accessibilityLabel={`Filtrer par ${item.name}`}
                     accessibilityRole="button"
                     key={item.id}
-                    onPress={() => setSpeciesFilterId(item.id)}
-                    style={({ pressed }) => [styles.filterChip, active && styles.filterChipActive, pressed && styles.pressed]}
+                    onPress={() => toggleSpeciesFilter(item.id)}
+                    style={({ pressed }) => [styles.fishOption, active && styles.fishOptionActive, pressed && styles.pressed]}
                   >
-                    <Text style={[styles.filterText, active && styles.filterTextActive]}>{item.name}</Text>
+                    <Text numberOfLines={1} style={[styles.fishOptionText, active && styles.fishOptionTextActive]}>{item.name}</Text>
                   </Pressable>
                 );
               })}
-            </View>
-          </ScrollView>
+            </ScrollView>
+          ) : null}
           {locationMessage ? <Text style={styles.errorText}>{locationMessage}</Text> : null}
         </Card>
       </View>
@@ -603,7 +628,9 @@ export function MapViewScreen() {
               <Text style={styles.metaStrong}>{selectedSpot.rating > 0 ? `${selectedSpot.rating.toFixed(1)} / 5` : 'Pas encore noté'}</Text>
               <Text style={styles.muted}>{selectedSpot.favoritesCount ?? 0} favoris</Text>
             </View>
-            {selectedSpecies ? <Text style={styles.filterSummary}>Filtré par : {selectedSpecies.name}</Text> : null}
+            {selectedSpeciesCount > 0 ? (
+              <Text style={styles.filterSummary}>Filtré par : {selectedSpecies.map((item) => item.name).join(', ')}</Text>
+            ) : null}
             {selectedSpot.conditions ? <Text numberOfLines={2} style={styles.previewText}>{selectedSpot.conditions}</Text> : null}
             {spotError ? <Text style={styles.errorText}>{spotError}</Text> : null}
             <Button
@@ -621,12 +648,6 @@ export function MapViewScreen() {
               title="Voir le spot"
             />
           </Card>
-        ) : !loading && !error && visibleSpots.length === 0 ? (
-          <EmptyState
-            description={selectedSpecies ? 'Aucun spot pour cette espèce dans la zone.' : 'Touchez le bouton + pour ajouter un spot.'}
-            icon="search-outline"
-            title="Aucun spot trouvé"
-          />
         ) : null}
 
         {loading ? <EmptyState description="Chargement des spots." title="Chargement" /> : null}
@@ -683,21 +704,74 @@ const styles = StyleSheet.create({
   filterTextActive: {
     color: colors.background,
   },
-  speciesFilterHeader: {
+  filterButton: {
     alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderColor: opacity.black08,
+    borderRadius: radius.lg,
+    borderWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  clearFilterButton: {
-    borderRadius: radius.round,
+    gap: spacing.md,
+    minHeight: 52,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
+    paddingVertical: spacing.sm,
   },
-  clearFilterText: {
-    color: colors.primary,
+  filterButtonIcon: {
+    alignItems: 'center',
+    backgroundColor: opacity.primary10,
+    borderRadius: radius.round,
+    height: 34,
+    justifyContent: 'center',
+    width: 34,
+  },
+  filterButtonText: {
+    flex: 1,
+    minWidth: 0,
+  },
+  filterButtonLabel: {
+    color: colors.textMuted,
+    fontFamily: typography.fontFamily,
+    fontSize: 11,
+  },
+  filterButtonValue: {
+    color: colors.text,
+    fontFamily: typography.fontFamilyBold,
+    fontSize: 14,
+    fontWeight: typography.weights.bold,
+    marginTop: 2,
+  },
+  fishFilterScroll: {
+    maxHeight: 180,
+  },
+  fishFilterPanel: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    paddingRight: spacing.xs,
+  },
+  fishOption: {
+    backgroundColor: opacity.black06,
+    borderColor: opacity.black08,
+    borderRadius: radius.round,
+    borderWidth: StyleSheet.hairlineWidth,
+    flexBasis: '47%',
+    flexGrow: 1,
+    maxWidth: '100%',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  fishOptionActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  fishOptionText: {
+    color: colors.textMuted,
     fontFamily: typography.fontFamilyBold,
     fontSize: 12,
     fontWeight: typography.weights.bold,
+  },
+  fishOptionTextActive: {
+    color: colors.background,
   },
   map: {
     ...StyleSheet.absoluteFillObject,
