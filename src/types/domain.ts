@@ -112,6 +112,8 @@ export type FishSpecies = {
   averageSize?: string;
   averageWeight?: string;
   difficulty?: string;
+  knownSpots: string[];
+  pointValue: number;
 };
 
 export type ConversationSummary = {

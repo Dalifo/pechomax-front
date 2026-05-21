@@ -34,9 +34,13 @@ export function useFish(filter: FishFilter = 'all', query = '') {
       const matchesQuery =
         !normalizedQuery ||
         fish.name.toLowerCase().includes(normalizedQuery) ||
-        fish.scientificName.toLowerCase().includes(normalizedQuery);
+        fish.scientificName.toLowerCase().includes(normalizedQuery) ||
+        fish.habitat.toLowerCase().includes(normalizedQuery) ||
+        fish.season.toLowerCase().includes(normalizedQuery) ||
+        fish.techniques.some((technique) => technique.toLowerCase().includes(normalizedQuery)) ||
+        fish.knownSpots.some((spot) => spot.toLowerCase().includes(normalizedQuery));
       return matchesFilter && matchesQuery;
-    });
+    }).sort((left, right) => left.name.localeCompare(right.name, 'fr'));
   }, [filter, query, state.data]);
 
   return { ...state, filteredFish, refresh };

@@ -1,6 +1,6 @@
 import { FishSpecies } from '../types/domain';
 
-type SpeciesDetail = Omit<FishSpecies, 'id' | 'name'>;
+type SpeciesDetail = Omit<FishSpecies, 'id' | 'knownSpots' | 'name' | 'pointValue'>;
 
 const defaultRegulation =
   'Réglementation variable selon les zones : vérifier la réglementation locale avant chaque sortie.';

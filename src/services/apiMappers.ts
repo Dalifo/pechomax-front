@@ -273,7 +273,9 @@ export function mapFishSpecies(item: BackendSpecies): FishSpecies {
     description: details.description,
     habitat: locations.length > 0 ? `${details.habitat} Spots PechoMax connus : ${locations.join(', ')}.` : details.habitat,
     id: item.id,
-    name: item.name ?? 'Espece',
+    knownSpots: locations,
+    name: item.name ?? 'Espèce',
+    pointValue: item.point_value ?? 0,
   };
 }
 

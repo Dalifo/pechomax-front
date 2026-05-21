@@ -374,6 +374,13 @@ export function HomeScreen() {
           onPress={() => navigation.navigate('MainTabs', { screen: 'Map' })}
           title="Nouvelle session de pêche"
         />
+        <Button
+          accessibilityLabel="Ouvrir le Fishidex"
+          iconLeft="albums-outline"
+          onPress={() => navigation.navigate('FishDatabase')}
+          title="Fishidex"
+          variant="outline"
+        />
 
         <SectionTitle
           action={<Button onPress={() => navigation.navigate('MainTabs', { screen: 'Community' })} size="sm" title="Tout voir" variant="ghost" />}
