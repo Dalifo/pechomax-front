@@ -3,7 +3,7 @@ import { EntityId } from '../types/domain';
 
 export type MainTabParamList = {
   Home: undefined;
-  Map: undefined;
+  Map: { spotId?: string } | undefined;
   Community: undefined;
   Messages: undefined;
   Profile: undefined;
@@ -30,6 +30,7 @@ export type RootStackParamList = {
   Tools: undefined;
   Shops: undefined;
   Logbook: undefined;
+  MySpots: undefined;
   Trophies: undefined;
   UserGuide: undefined;
   FAQ: undefined;

@@ -170,11 +170,11 @@ function formatDistance(distance?: number) {
   return `${Math.max(1, Math.round(distance ?? 0))} km`;
 }
 
-function StatTile({ icon, label, value, tone }: { icon: IconName; label: string; value: string; tone: 'primary' | 'secondary' | 'earth' }) {
+function StatTile({ icon, label, onPress, value, tone }: { icon: IconName; label: string; onPress?: () => void; value: string; tone: 'primary' | 'secondary' | 'earth' }) {
   const backgroundColor = tone === 'primary' ? colors.primary : tone === 'secondary' ? colors.secondary : colors.earth;
 
   return (
-    <Card padding="md" style={[styles.statTile, { backgroundColor }]}>
+    <Card onPress={onPress} padding="md" style={[styles.statTile, { backgroundColor }]}>
       <Ionicons name={icon} size={20} color={colors.background} />
       <Text style={styles.statValue}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
@@ -332,8 +332,8 @@ export function HomeScreen() {
         </View>
 
         <View style={styles.statsRow}>
-          <StatTile icon="fish-outline" label="Prises" tone="primary" value={profileStatValue('catches', String(posts.length))} />
-          <StatTile icon="location-outline" label="Spots" tone="secondary" value={profileStatValue('spots', String(spots.length))} />
+          <StatTile icon="fish-outline" label="Prises" onPress={() => navigation.navigate('Logbook')} tone="primary" value={profileStatValue('catches', String(posts.length))} />
+          <StatTile icon="location-outline" label="Spots" onPress={() => navigation.navigate('MySpots')} tone="secondary" value={profileStatValue('spots', String(spots.length))} />
           <StatTile icon="trophy-outline" label="Niveau" tone="earth" value={profile?.rankTitle ?? profile?.levelTitle ?? `Niv. ${profile?.level ?? 1}`} />
         </View>
 

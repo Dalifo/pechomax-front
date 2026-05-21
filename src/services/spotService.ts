@@ -61,6 +61,11 @@ export async function createSpot(input: CreateSpotInput): Promise<FishingSpot> {
   return mapFishingSpot(location);
 }
 
+export async function getMySpots(): Promise<FishingSpot[]> {
+  const locations = await httpClient.get<BackendLocation[]>('/locations/self');
+  return locations.map(mapFishingSpot);
+}
+
 export async function getFavoriteSpots(): Promise<FishingSpot[]> {
   const locations = await httpClient.get<BackendLocation[]>('/locations/favorites/self');
   return locations.map(mapFishingSpot);
