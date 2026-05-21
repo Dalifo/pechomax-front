@@ -1,5 +1,5 @@
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, opacity, radius, spacing, typography } from '../../theme/theme';
 import { MainTabParamList } from '../../navigation/types';
@@ -15,9 +15,10 @@ const tabMeta: Record<keyof MainTabParamList, { asset: TabAssetName; label: stri
 
 export function BottomTabBar({ descriptors, navigation, state }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
+  const bottomInset = Math.max(insets.bottom, Platform.OS === 'android' ? spacing.xxl : spacing.xs);
 
   return (
-    <View style={[styles.root, { paddingBottom: Math.max(insets.bottom, spacing.sm) }]}>
+    <View style={[styles.root, { paddingBottom: bottomInset }]}>
       {state.routes.map((route, index) => {
         const routeName = route.name as keyof MainTabParamList;
         const focused = state.index === index;
@@ -69,16 +70,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingHorizontal: spacing.sm,
+    paddingTop: 2,
   },
   item: {
     alignItems: 'center',
     borderRadius: radius.md,
     flex: 1,
-    gap: 4,
+    gap: 1,
     justifyContent: 'center',
-    minHeight: 54,
+    minHeight: 40,
     paddingHorizontal: 2,
-    paddingVertical: spacing.xs,
+    paddingVertical: 2,
   },
   itemActive: {
     backgroundColor: opacity.primary10,
@@ -88,7 +90,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontFamily: typography.fontFamilyBold,
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: typography.weights.bold,
     letterSpacing: 0,
   },

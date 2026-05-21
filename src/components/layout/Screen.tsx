@@ -8,12 +8,13 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Edge, SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing } from '../../theme/theme';
 
 type ScreenProps = PropsWithChildren<{
   avoidKeyboard?: boolean;
   contentContainerStyle?: StyleProp<ViewStyle>;
+  edges?: Edge[];
   padded?: boolean;
   scroll?: boolean;
   style?: StyleProp<ViewStyle>;
@@ -23,6 +24,7 @@ export function Screen({
   avoidKeyboard = false,
   children,
   contentContainerStyle,
+  edges,
   padded = true,
   scroll = false,
   style,
@@ -42,7 +44,7 @@ export function Screen({
     <View style={[styles.fill, contentStyle]}>{children}</View>
   );
 
-  const safeContent = <SafeAreaView style={[styles.root, style]}>{body}</SafeAreaView>;
+  const safeContent = <SafeAreaView edges={edges} style={[styles.root, style]}>{body}</SafeAreaView>;
 
   if (!avoidKeyboard) {
     return safeContent;

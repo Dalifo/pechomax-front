@@ -78,14 +78,6 @@ export function LoginScreen({ navigation }: Props) {
           onPress={() => submit()}
           title="Se connecter"
         />
-        <Button
-          accessibilityLabel="Connexion rapide"
-          fullWidth
-          loading={loading}
-          onPress={() => submit({ email: 'marc@pechomax.dev', password: 'PechoMax123!' })}
-          title="Connexion rapide"
-          variant="secondary"
-        />
       </Card>
 
       <View style={styles.footer}>

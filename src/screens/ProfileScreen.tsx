@@ -89,7 +89,7 @@ export function ProfileScreen() {
 
   if (loading) {
     return (
-      <Screen padded={false}>
+      <Screen edges={['top', 'left', 'right']} padded={false}>
         <AppHeader title="Profil" />
         <EmptyState description="Chargement du profil." icon="person-outline" title="Chargement" />
       </Screen>
@@ -98,7 +98,7 @@ export function ProfileScreen() {
 
   if (!profile) {
     return (
-      <Screen padded={false}>
+      <Screen edges={['top', 'left', 'right']} padded={false}>
         <AppHeader title="Profil" />
         <View style={styles.content}>
           <EmptyState
@@ -118,7 +118,7 @@ export function ProfileScreen() {
   const unlockedBadges = profile.badges.filter((badge) => badge.unlocked).length;
 
   return (
-    <Screen padded={false} scroll>
+    <Screen edges={['top', 'left', 'right']} padded={false} scroll>
       <AppHeader
         action={<IconButton accessibilityLabel="Paramètres" icon="settings-outline" onPress={() => navigation.navigate('Settings')} variant="soft" />}
         title="Profil"

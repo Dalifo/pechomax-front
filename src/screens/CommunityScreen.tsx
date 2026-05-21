@@ -121,7 +121,7 @@ export function CommunityScreen() {
   };
 
   return (
-    <Screen padded={false} scroll>
+    <Screen edges={['top', 'left', 'right']} padded={false} scroll>
       <AppHeader
         action={
           <IconButton

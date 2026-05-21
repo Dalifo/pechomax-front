@@ -277,16 +277,21 @@ export function mapFishSpecies(item: BackendSpecies): FishSpecies {
   };
 }
 
-export function mapConversation(item: BackendConversation): ConversationSummary {
+export function mapConversation(item: BackendConversation, currentUserId?: string | null): ConversationSummary {
   const latest = item.messages?.[0];
+  const messageParticipant = item.messages
+    ?.map((message) => message.user)
+    .find((user) => user?.id && user.id !== currentUserId);
+  const participant = item.user?.id === currentUserId ? item.recipient : item.user;
+  const fallbackUser = participant ?? messageParticipant ?? item.recipient ?? item.user;
 
   return {
     id: item.id,
     lastMessage: latest?.content || item.title,
     online: false,
-    timeLabel: relativeDateLabel(latest?.created_at ?? item.updated_at),
+    timeLabel: latest?.created_at ? timeLabel(latest.created_at) : relativeDateLabel(item.updated_at),
     unreadCount: 0,
-    user: mapUserSummary(item.user, item.user_id),
+    user: mapUserSummary(fallbackUser, fallbackUser?.id ?? item.user_id),
   };
 }
 

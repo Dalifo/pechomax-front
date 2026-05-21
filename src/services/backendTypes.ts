@@ -156,10 +156,12 @@ export type BackendConversation = {
   id: string;
   title: string;
   category_id?: string | null;
+  recipient_id?: string | null;
   user_id: string;
   created_at?: string;
   updated_at?: string;
   user?: BackendUser | null;
+  recipient?: BackendUser | null;
   category?: BackendCategory | null;
   messages?: BackendMessage[];
 };

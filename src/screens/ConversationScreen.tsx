@@ -11,7 +11,7 @@ import { Input } from '../components/ui/Input';
 import { useConversation } from '../hooks/useConversation';
 import { RootStackParamList } from '../navigation/types';
 import { colors, opacity, radius, spacing, typography } from '../theme/theme';
-import { Message } from '../types/domain';
+import { Message, UserSummary } from '../types/domain';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Conversation'>;
 
@@ -19,6 +19,7 @@ export function ConversationScreen({ navigation, route }: Props) {
   const { conversation, loading, messages, send } = useConversation(route.params.conversationId);
   const [draft, setDraft] = useState('');
   const scrollRef = useRef<ScrollView>(null);
+  const recipient = route.params.recipient ?? conversation?.user ?? null;
 
   useEffect(() => {
     const sub = Keyboard.addListener('keyboardDidShow', () => {
@@ -49,7 +50,7 @@ export function ConversationScreen({ navigation, route }: Props) {
   if (loading || !conversation) {
     return (
       <Screen padded={false}>
-        <AppHeader onBack={navigation.goBack} showBack title="Conversation" />
+        <AppHeader onBack={navigation.goBack} showBack title={recipient?.name ?? 'Conversation'} />
         <EmptyState description="Chargement de la conversation." icon="chatbubble-outline" title="Chargement" />
       </Screen>
     );
@@ -60,20 +61,23 @@ export function ConversationScreen({ navigation, route }: Props) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.root}
     >
-      <SafeAreaView edges={['top', 'left', 'right']} style={styles.fill}>
+      <SafeAreaView edges={['top', 'left', 'right', 'bottom']} style={styles.fill}>
         <AppHeader
           onBack={navigation.goBack}
           showBack
           subtitle={conversation.online ? 'En ligne' : 'Hors ligne'}
-          title={conversation.user.name}
+          title={recipient?.name ?? conversation.user.name}
         />
         <ScrollView ref={scrollRef} contentContainerStyle={styles.messages} showsVerticalScrollIndicator={false}>
           <View style={styles.datePill}>
             <Text style={styles.dateText}>Aujourd'hui</Text>
           </View>
           {messages.map((message) => (
-            <MessageBubble key={message.id} message={message} />
+            <MessageBubble key={message.id} message={message} recipient={recipient ?? conversation.user} />
           ))}
+          {messages.length === 0 ? (
+            <EmptyState description="Envoyez le premier message pour lancer l'échange." icon="chatbubble-outline" title="Nouvelle conversation" />
+          ) : null}
         </ScrollView>
         <View style={styles.inputBar}>
           <Input
@@ -92,12 +96,12 @@ export function ConversationScreen({ navigation, route }: Props) {
   );
 }
 
-function MessageBubble({ message }: { message: Message }) {
+function MessageBubble({ message, recipient }: { message: Message; recipient: UserSummary }) {
   const mine = message.sender === 'me';
 
   return (
     <View style={[styles.messageRow, mine && styles.messageRowMine]}>
-      {!mine ? <Avatar initials="SB" size="sm" /> : null}
+      {!mine ? <Avatar initials={recipient.initials} size="sm" source={recipient.profilePic ? { uri: recipient.profilePic } : undefined} /> : null}
       <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleThem]}>
         <Text style={[styles.messageText, mine && styles.messageTextMine]}>{message.text}</Text>
         <Text style={[styles.messageTime, mine && styles.messageTimeMine]}>{message.timeLabel}</Text>

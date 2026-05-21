@@ -22,6 +22,17 @@ export function useMessages(query = '') {
     }
   }, []);
 
+  const upsertConversation = useCallback((conversation: ConversationSummary) => {
+    setState((current) => {
+      const exists = current.data.some((item) => item.id === conversation.id);
+      const data = exists
+        ? current.data.map((item) => (item.id === conversation.id ? conversation : item))
+        : [conversation, ...current.data];
+
+      return { ...current, data };
+    });
+  }, []);
+
   useEffect(() => {
     refresh();
   }, [refresh]);
@@ -38,5 +49,5 @@ export function useMessages(query = '') {
     );
   }, [query, state.data]);
 
-  return { ...state, filteredConversations, refresh };
+  return { ...state, filteredConversations, refresh, upsertConversation };
 }

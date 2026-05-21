@@ -376,7 +376,7 @@ export function MapViewScreen() {
   };
 
   return (
-    <Screen padded={false} style={styles.root}>
+    <Screen edges={['top', 'left', 'right']} padded={false} style={styles.root}>
       <RNMapView
         ref={mapRef}
         initialRegion={mapRegion}

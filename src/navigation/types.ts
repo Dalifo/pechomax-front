@@ -1,5 +1,5 @@
 import { NavigatorScreenParams } from '@react-navigation/native';
-import { EntityId } from '../types/domain';
+import { EntityId, UserSummary } from '../types/domain';
 
 export type MainTabParamList = {
   Home: undefined;
@@ -19,7 +19,7 @@ export type RootStackParamList = {
   PostDetail: { postId: EntityId };
   CreatePost: undefined;
   SpotDetail: { spotId: EntityId };
-  Conversation: { conversationId: EntityId };
+  Conversation: { conversationId: EntityId; recipient?: UserSummary };
   EditProfile: undefined;
   Settings: undefined;
   Notifications: undefined;
