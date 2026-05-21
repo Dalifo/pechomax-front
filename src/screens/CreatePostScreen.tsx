@@ -88,6 +88,7 @@ export function CreatePostScreen({ navigation }: Props) {
   const [spotCoordinate, setSpotCoordinate] = useState<SpotCoordinate | null>(null);
   const [spotModalError, setSpotModalError] = useState<string | null>(null);
   const [creatingSpot, setCreatingSpot] = useState(false);
+  const [showFormError, setShowFormError] = useState(false);
   const { submitPost, submitting } = useCreatePost();
 
   const loadOptions = async () => {
@@ -466,13 +467,18 @@ export function CreatePostScreen({ navigation }: Props) {
 
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-        <Button
-          accessibilityLabel="Publier ma prise"
-          disabled={!valid || submitting || loadingOptions}
-          loading={submitting}
-          onPress={submit}
-          title="Publier ma prise"
-        />
+        <Pressable onPress={() => { if (!valid) setShowFormError(true); }}>
+          <Button
+            accessibilityLabel="Publier ma prise"
+            disabled={!valid || submitting || loadingOptions}
+            loading={submitting}
+            onPress={submit}
+            title="Publier ma prise"
+          />
+        </Pressable>
+        {showFormError && !valid ? (
+          <Text style={styles.formErrorText}>Formulaire incomplet — veuillez remplir tous les champs obligatoires.</Text>
+        ) : null}
         <Button accessibilityLabel="Annuler" onPress={navigation.goBack} title="Annuler" variant="ghost" />
       </View>
 
@@ -702,6 +708,13 @@ const styles = StyleSheet.create({
     fontFamily: typography.fontFamily,
     fontSize: 13,
     lineHeight: 19,
+  },
+  formErrorText: {
+    color: colors.danger,
+    fontFamily: typography.fontFamily,
+    fontSize: 12,
+    lineHeight: 17,
+    textAlign: 'center',
   },
   helperText: {
     color: colors.textMuted,

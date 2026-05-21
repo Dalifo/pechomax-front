@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import * as Location from 'expo-location';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AppHeader } from '../components/layout/AppHeader';
 import { Screen } from '../components/layout/Screen';
@@ -229,7 +230,9 @@ function SpotSuggestion({ onPress, spot }: { onPress: () => void; spot: FishingS
 
 export function HomeScreen() {
   const navigation = useNavigation<RootNavigation>();
-  const { data: posts, loading: postsLoading } = usePosts();
+  const { data: posts, loading: postsLoading, refresh: refreshPosts } = usePosts();
+
+  useFocusEffect(useCallback(() => { refreshPosts(); }, [refreshPosts]));
   const { data: spots } = useSpots();
   const { data: profile } = useProfile();
   const [userCoordinate, setUserCoordinate] = useState<Coordinate | null>(null);
