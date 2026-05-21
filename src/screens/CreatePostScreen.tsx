@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Image, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import RNMapView, { MapPressEvent, Marker } from 'react-native-maps';
 import { AppHeader } from '../components/layout/AppHeader';
@@ -70,6 +70,7 @@ function validCoordinate(coordinate: SpotCoordinate | null): coordinate is SpotC
 }
 
 export function CreatePostScreen({ navigation }: Props) {
+  const allowNavigationAfterSubmitRef = useRef(false);
   const [species, setSpecies] = useState<FishSpecies[]>([]);
   const [spots, setSpots] = useState<FishingSpot[]>([]);
   const [selectedSpeciesId, setSelectedSpeciesId] = useState<EntityId | null>(null);
@@ -96,7 +97,7 @@ export function CreatePostScreen({ navigation }: Props) {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
-      if (!isDirty) return;
+      if (allowNavigationAfterSubmitRef.current || !isDirty) return;
       e.preventDefault();
       Alert.alert(
         "Annuler la création ?",
@@ -302,6 +303,7 @@ export function CreatePostScreen({ navigation }: Props) {
         speciesId: selectedSpecies.id,
         weightGrams: weightValue,
       });
+      allowNavigationAfterSubmitRef.current = true;
       navigation.replace('PostDetail', { postId: createdPost.id });
     } catch {
       setError('Impossible de publier cette prise. Vérifiez la photo, la connexion et réessayez.');

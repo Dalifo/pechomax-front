@@ -8,6 +8,7 @@ import { Badge, BadgeTone } from '../components/ui/Badge';
 import { Card } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Input } from '../components/ui/Input';
+import { RemoteImage } from '../components/ui/RemoteImage';
 import { useFish } from '../hooks/useFish';
 import { RootStackParamList } from '../navigation/types';
 import { colors, opacity, radius, shadows, spacing, typography } from '../theme/theme';
@@ -132,10 +133,15 @@ function FishCard({ fish, index, onPress }: { fish: FishSpecies; index: number; 
 
   return (
     <Card accessibilityLabel={`Ouvrir ${fish.name}`} elevated onPress={onPress} style={styles.fishCard}>
+      <RemoteImage
+        debugLabel={`Fishidex preview: ${fish.name}`}
+        uri={fish.imageUrl}
+        style={[styles.previewImage, fish.type === 'saltwater' && styles.fishIconSea, fish.type === 'mixed' && styles.fishIconMixed]}
+      >
+        <Ionicons name={fishIcon(fish.type)} size={42} color={colors.background} />
+      </RemoteImage>
+
       <View style={styles.cardHeader}>
-        <View style={[styles.fishIcon, fish.type === 'saltwater' && styles.fishIconSea, fish.type === 'mixed' && styles.fishIconMixed]}>
-          <Ionicons name={fishIcon(fish.type)} size={28} color={colors.background} />
-        </View>
         <View style={styles.textFill}>
           <View style={styles.nameRow}>
             <Text style={styles.dexNumber}>#{String(index).padStart(3, '0')}</Text>
@@ -278,6 +284,15 @@ const styles = StyleSheet.create({
   fishCard: {
     gap: spacing.md,
   },
+  previewImage: {
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    borderRadius: radius.lg,
+    height: 148,
+    justifyContent: 'center',
+    overflow: 'hidden',
+    width: '100%',
+  },
   cardHeader: {
     alignItems: 'center',
     flexDirection: 'row',
@@ -289,6 +304,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     height: 58,
     justifyContent: 'center',
+    overflow: 'hidden',
     width: 58,
   },
   fishIconSea: {

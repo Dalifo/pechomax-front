@@ -7,6 +7,7 @@ import { Screen } from '../components/layout/Screen';
 import { Badge } from '../components/ui/Badge';
 import { Card } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
+import { RemoteImage } from '../components/ui/RemoteImage';
 import { SectionTitle } from '../components/ui/SectionTitle';
 import { useFishDetail } from '../hooks/useFish';
 import { RootStackParamList } from '../navigation/types';
@@ -55,10 +56,10 @@ export function FishDetailScreen({ navigation, route }: Props) {
     <Screen padded={false} scroll>
       <AppHeader onBack={navigation.goBack} showBack title="Fishidex" />
       <LinearGradient colors={[colors.primary, colors.secondary]} style={styles.hero}>
+        <RemoteImage debugLabel={`Fishidex detail: ${fish.name}`} uri={fish.imageUrl} style={styles.heroImage}>
+          <Ionicons name={fishIcon(fish.type)} size={52} color={colors.background} />
+        </RemoteImage>
         <View style={styles.heroTop}>
-          <View style={styles.heroIcon}>
-            <Ionicons name={fishIcon(fish.type)} size={44} color={colors.background} />
-          </View>
           <View style={styles.heroText}>
             <Text style={styles.heroKicker}>Fiche espèce</Text>
             <Text numberOfLines={2} style={styles.heroTitle}>{fish.name}</Text>
@@ -162,13 +163,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.lg,
   },
-  heroIcon: {
+  heroImage: {
     alignItems: 'center',
     backgroundColor: opacity.black16,
     borderRadius: radius.xl,
-    height: 84,
+    height: 190,
     justifyContent: 'center',
-    width: 84,
+    overflow: 'hidden',
+    width: '100%',
   },
   heroText: {
     flex: 1,

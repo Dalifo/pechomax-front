@@ -112,6 +112,7 @@ export type FishSpecies = {
   averageSize?: string;
   averageWeight?: string;
   difficulty?: string;
+  imageUrl?: string;
   knownSpots: string[];
   pointValue: number;
 };

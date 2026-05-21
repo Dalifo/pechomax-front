@@ -39,6 +39,8 @@ export type BackendAuthSelf = BackendAuthPayload['sub'];
 
 export type BackendSpecies = {
   id: string;
+  image_url?: string | null;
+  imageUrl?: string | null;
   name?: string | null;
   point_value: number;
   created_at?: string;
